@@ -138,7 +138,7 @@ namespace MaterialSkin
                     return Color.FromArgb(alpha, iMax, iMid, iMin);
             }
         }
-        
+
         /// <summary>
         /// Removes alpha value without changing Color.
         /// </summary>
@@ -157,6 +157,6 @@ namespace MaterialSkin
                 (byte)(foreground.G * alpha + background.G * diff),
                 (byte)(foreground.B * alpha + background.B * diff));
         }
-        
+
     }
 }

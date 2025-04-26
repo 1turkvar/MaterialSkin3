@@ -3,9 +3,9 @@
     using MaterialSkin.Animations;
     using System;
     using System.ComponentModel;
+    using System.Data;
     using System.Drawing;
     using System.Linq;
-    using System.Data;
     using System.Windows.Forms;
 
     public class MaterialComboBox : ComboBox, IMaterialControl
@@ -155,7 +155,7 @@
                 Invalidate();
             };
             KeyUp += (sender, args) =>
-            { 
+            {
                 if (Enabled && DropDownStyle == ComboBoxStyle.DropDownList && (args.KeyCode == Keys.Delete || args.KeyCode == Keys.Back))
                 {
                     SelectedIndex = -1;
@@ -278,7 +278,7 @@
                     NativeText.DrawTransparentText(
                     Hint,
                     SkinManager.getTextBoxFontBySize(hintTextSize),
-                    Enabled ? DroppedDown || Focused ? 
+                    Enabled ? DroppedDown || Focused ?
                     SelectedColor : // Focus 
                     SkinManager.TextMediumEmphasisColor : // not focused
                     SkinManager.TextDisabledOrHintColor, // Disabled
@@ -308,7 +308,7 @@
             {
                 g.FillRectangle(SkinManager.BackgroundHoverBrush, e.Bounds);
             }
-            
+
             string Text = "";
             if (!string.IsNullOrWhiteSpace(DisplayMember))
             {

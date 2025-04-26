@@ -101,7 +101,7 @@
         private int _tab_indicator_height;
 
         [Category("Material Skin"), Browsable(true), DisplayName("Tab Indicator Height"), DefaultValue(2)]
-        public int TabIndicatorHeight 
+        public int TabIndicatorHeight
         {
             get { return _tab_indicator_height; }
             set
@@ -191,9 +191,9 @@
 
             //Draw tab headers
             if (_tab_over_index >= 0)
-            { 
+            {
                 //Change mouse over tab background color
-                g.FillRectangle(SkinManager.BackgroundHoverBrush , _tabRects[_tab_over_index].X, _tabRects[_tab_over_index].Y , _tabRects[_tab_over_index].Width, _tabRects[_tab_over_index].Height - _tab_indicator_height);
+                g.FillRectangle(SkinManager.BackgroundHoverBrush, _tabRects[_tab_over_index].X, _tabRects[_tab_over_index].Y, _tabRects[_tab_over_index].Width, _tabRects[_tab_over_index].Height - _tab_indicator_height);
             }
 
             foreach (TabPage tabPage in _baseTabControl.TabPages)
@@ -206,7 +206,7 @@
                     using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
                     {
                         Size textSize = TextRenderer.MeasureText(_baseTabControl.TabPages[currentTabIndex].Text, Font);
-                        Rectangle textLocation = new Rectangle(_tabRects[currentTabIndex].X+ (TAB_HEADER_PADDING/2), _tabRects[currentTabIndex].Y, _tabRects[currentTabIndex].Width - (TAB_HEADER_PADDING), _tabRects[currentTabIndex].Height);
+                        Rectangle textLocation = new Rectangle(_tabRects[currentTabIndex].X + (TAB_HEADER_PADDING / 2), _tabRects[currentTabIndex].Y, _tabRects[currentTabIndex].Width - (TAB_HEADER_PADDING), _tabRects[currentTabIndex].Height);
 
                         if (_tabLabel == TabLabelStyle.IconAndText)
                         {
@@ -214,7 +214,7 @@
                             textLocation.Height = 10;
                         }
 
-                        if (((TAB_HEADER_PADDING*2) + textSize.Width < TAB_WIDTH_MAX))
+                        if (((TAB_HEADER_PADDING * 2) + textSize.Width < TAB_WIDTH_MAX))
                         {
                             NativeText.DrawTransparentText(
                             CharacterCasing == CustomCharacterCasing.Upper ? tabPage.Text.ToUpper() :
@@ -259,10 +259,10 @@
                         {
                             iconRect.Y = 12;
                         }
-                        g.DrawImage(!String.IsNullOrEmpty(tabPage.ImageKey) ? _baseTabControl.ImageList.Images[tabPage.ImageKey]: _baseTabControl.ImageList.Images[tabPage.ImageIndex], iconRect);
+                        g.DrawImage(!String.IsNullOrEmpty(tabPage.ImageKey) ? _baseTabControl.ImageList.Images[tabPage.ImageKey] : _baseTabControl.ImageList.Images[tabPage.ImageIndex], iconRect);
                     }
                 }
-           }
+            }
 
             //Animate tab indicator
             var previousSelectedTabIndexIfHasOne = _previousSelectedTabIndex == -1 ? _baseTabControl.SelectedIndex : _previousSelectedTabIndex;
@@ -379,7 +379,7 @@
                             else if (TabWidth < TAB_WIDTH_MIN)
                                 TabWidth = TAB_WIDTH_MIN;
 
-                            if (i==0)
+                            if (i == 0)
                                 _tabRects.Add(new Rectangle(FIRST_TAB_PADDING - (TAB_HEADER_PADDING), 0, TabWidth, Height));
                             else
                                 _tabRects.Add(new Rectangle(_tabRects[i - 1].Right, 0, TabWidth, Height));
