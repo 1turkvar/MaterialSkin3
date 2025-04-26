@@ -1,12 +1,12 @@
 ﻿namespace MaterialSkin.Controls
 {
+    using MaterialSkin.Animations;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Drawing;
     using System.Drawing.Imaging;
     using System.Windows.Forms;
-    using MaterialSkin.Animations;
 
     public class MaterialMaskedTextBox : Control, IMaterialControl
     {
@@ -39,7 +39,7 @@
 
         [Browsable(false)]
         public int SelectionLength { get { return baseTextBox.SelectionLength; } set { baseTextBox.SelectionLength = value; } }
-        
+
         [Browsable(false)]
         public int TextLength { get { return baseTextBox.TextLength; } }
 
@@ -193,9 +193,9 @@
             {
                 //if (_prefixsuffixText != value)
                 //{
-                    _prefixsuffixText = value;
-                    UpdateRects();
-                    Invalidate();
+                _prefixsuffixText = value;
+                UpdateRects();
+                Invalidate();
                 //}
             }
         }
@@ -275,12 +275,12 @@
         public bool ResetOnSpace { get { return baseTextBox.ResetOnSpace; } set { baseTextBox.ResetOnSpace = value; } }
 
         [Category("Behavior")]
-        public bool ShortcutsEnabled 
-        { 
-            get 
-            { return baseTextBox.ShortcutsEnabled; } 
-            set 
-            { 
+        public bool ShortcutsEnabled
+        {
+            get
+            { return baseTextBox.ShortcutsEnabled; }
+            set
+            {
                 baseTextBox.ShortcutsEnabled = value;
                 if (value == false)
                 {
@@ -506,7 +506,7 @@
             }
         }
 
-        #if NETFRAMEWORK
+#if NETFRAMEWORK
         public new event EventHandler ContextMenuChanged
         {
             add
@@ -518,7 +518,7 @@
                 baseTextBox.ContextMenuChanged -= value;
             }
         }
-        #endif
+#endif
 
         public new event EventHandler ContextMenuStripChanged
         {
@@ -916,7 +916,7 @@
             }
         }
 
-       public event MaskInputRejectedEventHandler MaskInputRejected
+        public event MaskInputRejectedEventHandler MaskInputRejected
         {
             add
             {
@@ -1264,7 +1264,7 @@
             }
         }
 
-       public event EventHandler TextAlignChanged
+        public event EventHandler TextAlignChanged
         {
             add
             {
@@ -1288,7 +1288,7 @@
             }
         }
 
-       public event TypeValidationEventHandler TypeValidationCompleted
+        public event TypeValidationEventHandler TypeValidationCompleted
         {
             add
             {
@@ -1351,7 +1351,7 @@
         private const int ACTIVATION_INDICATOR_HEIGHT = 2;
         private const int HELPER_TEXT_HEIGHT = 16;
         private const int FONT_HEIGHT = 20;
-        
+
         private int HEIGHT = 48;
 
         private int LINE_Y;
@@ -1405,7 +1405,7 @@
                 Font = base.Font,
                 ForeColor = SkinManager.TextHighEmphasisColor,
                 Multiline = false,
-                Location = new Point(LEFT_PADDING, HEIGHT/2- FONT_HEIGHT/2),
+                Location = new Point(LEFT_PADDING, HEIGHT / 2 - FONT_HEIGHT / 2),
                 Width = Width - (LEFT_PADDING + RIGHT_PADDING),
                 Height = FONT_HEIGHT
             };
@@ -1442,7 +1442,7 @@
                 _animationManager.StartNewAnimation(AnimationDirection.Out);
                 UpdateRects();
             };
-            
+
             baseTextBox.TextChanged += new EventHandler(Redraw);
             baseTextBox.BackColorChanged += new EventHandler(Redraw);
 
@@ -1468,7 +1468,7 @@
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             g.Clear(Parent.BackColor);
             SolidBrush backBrush = new SolidBrush(DrawHelper.BlendColor(Parent.BackColor, SkinManager.BackgroundAlternativeColor, SkinManager.BackgroundAlternativeColor.A));
-            
+
             //backColor
             g.FillRectangle(
                 !Enabled ? SkinManager.BackgroundDisabledBrush : // Disabled
@@ -1561,7 +1561,7 @@
                 using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
                 {
                     Rectangle suffixRect = new Rectangle(
-                        Width - _right_padding ,
+                        Width - _right_padding,
                         hasHint && UseTallSize ? (hintRect.Y + hintRect.Height) - 2 : ClientRectangle.Y,
                         _suffix_padding,
                         hasHint && UseTallSize ? LINE_Y - (hintRect.Y + hintRect.Height) : LINE_Y);
@@ -1618,14 +1618,14 @@
             }
 
             // Draw error message
-            if (_showAssistiveText && _errorState && ErrorMessage!=null)
+            if (_showAssistiveText && _errorState && ErrorMessage != null)
             {
                 using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
                 {
                     NativeText.DrawTransparentText(
                     ErrorMessage,
                     SkinManager.getTextBoxFontBySize(hintTextSize),
-                    Enabled ? 
+                    Enabled ?
                     SkinManager.BackgroundHoverRedColor : // error state
                     SkinManager.TextDisabledOrHintColor, // Disabled
                     helperTextRect.Location,

@@ -160,8 +160,8 @@
 
         private bool hasHint;
         private bool _errorState = false;
-        private int _left_padding ;
-        private int _right_padding ;
+        private int _left_padding;
+        private int _right_padding;
         private Rectangle _leadingIconBounds;
         private Rectangle _trailingIconBounds;
         private Rectangle _textfieldBounds;
@@ -363,7 +363,7 @@
             if (_trailingIcon == null && _leadingIcon == null) return;
 
             // Calculate lightness and color
-            float l = (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT ) ? 0f : 1f;
+            float l = (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT) ? 0f : 1f;
 
             // Create matrices
             float[][] matrixGray = {
@@ -510,13 +510,13 @@
 
             if (RedefineTextField)
             {
-            var rect = new Rectangle(_left_padding, UseTallSize ? hasHint ?
-        (HINT_TEXT_SMALL_Y + HINT_TEXT_SMALL_SIZE) : // Has hint and it's tall
-        (int)(LINE_Y / 3.5) : // No hint and tall
-        Height / 5, // not tall
-        ClientSize.Width - _left_padding - _right_padding, LINE_Y);
-            RECT rc = new RECT(rect);
-            SendMessageRefRect(Handle, EM_SETRECT, 0, ref rc);
+                var rect = new Rectangle(_left_padding, UseTallSize ? hasHint ?
+            (HINT_TEXT_SMALL_Y + HINT_TEXT_SMALL_SIZE) : // Has hint and it's tall
+            (int)(LINE_Y / 3.5) : // No hint and tall
+            Height / 5, // not tall
+            ClientSize.Width - _left_padding - _right_padding, LINE_Y);
+                RECT rc = new RECT(rect);
+                SendMessageRefRect(Handle, EM_SETRECT, 0, ref rc);
             }
 
         }
@@ -558,7 +558,7 @@
             //Trailing Icon
             if (TrailingIcon != null)
             {
-                if(_errorState)
+                if (_errorState)
                     g.FillRectangle(iconsErrorBrushes["_trailingIcon"], _trailingIconBounds);
                 else
                     g.FillRectangle(iconsBrushes["_trailingIcon"], _trailingIconBounds);

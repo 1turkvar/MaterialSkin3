@@ -522,7 +522,7 @@
                         _drawerItemRects[currentTabIndex].X + (drawerItemHeight >> 1) - (iconsSize[ik].Width >> 1),
                         _drawerItemRects[currentTabIndex].Y + (drawerItemHeight >> 1) - (iconsSize[ik].Height >> 1),
                         iconsSize[ik].Width, iconsSize[ik].Height);
-                    
+
                     if (ShowIconsWhenHidden)
                     {
                         iconsBrushes[ik].TranslateTransform(dx, 0);
@@ -662,11 +662,11 @@
         {
             if (DesignMode)
                 return;
-            
+
             if (e.Button == MouseButtons.Left && e.Y != _lastMouseY && (Location.Y < 0 || Height < (8 + drawerItemHeight) * _drawerItemRects.Count))
             {
                 int diff = e.Y - _lastMouseY;
-                if (diff > 0) 
+                if (diff > 0)
                 {
                     if (Location.Y < 0)
                     {
@@ -674,7 +674,7 @@
                         Height = Parent.Height + Math.Abs(Location.Y);
                     }
                 }
-                else 
+                else
                 {
                     if (Height < (8 + drawerItemHeight) * _drawerItemRects.Count)
                     {
@@ -684,12 +684,12 @@
                 }
                 //return;
             }
-            
+
             base.OnMouseMove(e);
 
             if (_drawerItemRects == null)
                 UpdateTabRects();
-                
+
             Cursor previousCursor = Cursor;
 
             if (e.Location.X + this.Location.X < BORDER_WIDTH)
@@ -718,7 +718,7 @@
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseEnter(e);
-            if (AutoShow && _isOpen==false)
+            if (AutoShow && _isOpen == false)
             {
                 Show();
             }

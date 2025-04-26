@@ -1,16 +1,14 @@
 #region Imports
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
 using System.Drawing.Text;
-using System.Windows.Forms;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 #endregion
 
@@ -39,7 +37,7 @@ namespace MaterialSkin.Controls
         private MaterialScrollBar _scrollBar;
         private object _selectedValue;
 
-        private bool _updating=false;
+        private bool _updating = false;
         private int _itemHeight;
         private bool _showBorder;
         private Color _borderColor;
@@ -88,7 +86,7 @@ namespace MaterialSkin.Controls
         public bool UseAccentColor
         {
             get { return useAccentColor; }
-            set { useAccentColor = value; _scrollBar.UseAccentColor = value;  Invalidate(); }
+            set { useAccentColor = value; _scrollBar.UseAccentColor = value; Invalidate(); }
         }
 
         [TypeConverter(typeof(CollectionConverter))]
@@ -466,8 +464,8 @@ namespace MaterialSkin.Controls
                     NativeText.DrawTransparentText(
                     itemText,
                     _primaryFont,
-                    Enabled ? (i != SelectedIndex || UseAccentColor) ? 
-                    SkinManager.TextHighEmphasisColor : 
+                    Enabled ? (i != SelectedIndex || UseAccentColor) ?
+                    SkinManager.TextHighEmphasisColor :
                     SkinManager.ColorScheme.TextColor :
                     SkinManager.TextDisabledOrHintColor, // Disabled
                     primaryTextRect.Location,
@@ -478,8 +476,8 @@ namespace MaterialSkin.Controls
                         NativeText.DrawTransparentText(
                         itemSecondaryText,
                         _secondaryFont,
-                        Enabled ? (i != SelectedIndex || UseAccentColor) ? 
-                        SkinManager.TextDisabledOrHintColor : 
+                        Enabled ? (i != SelectedIndex || UseAccentColor) ?
+                        SkinManager.TextDisabledOrHintColor :
                         SkinManager.ColorScheme.TextColor.Darken(0.25f) :
                         SkinManager.TextDisabledOrHintColor, // Disabled
                         secondaryTextRect.Location,
@@ -491,8 +489,8 @@ namespace MaterialSkin.Controls
                         NativeText.DrawMultilineTransparentText(
                         itemSecondaryText,
                         _secondaryFont,
-                        Enabled ? (i != SelectedIndex || UseAccentColor) ? 
-                        SkinManager.TextDisabledOrHintColor : 
+                        Enabled ? (i != SelectedIndex || UseAccentColor) ?
+                        SkinManager.TextDisabledOrHintColor :
                         SkinManager.ColorScheme.TextColor.Darken(0.25f) :
                         SkinManager.TextDisabledOrHintColor, // Disabled
                         secondaryTextRect.Location,
@@ -555,9 +553,9 @@ namespace MaterialSkin.Controls
 
         public void RemoveItemAt(int index)
         {
-           if (index<= _selectedIndex)
+            if (index <= _selectedIndex)
             {
-                _selectedIndex -=1;
+                _selectedIndex -= 1;
                 update_selection();
             }
             _items.RemoveAt(index);
@@ -567,7 +565,7 @@ namespace MaterialSkin.Controls
 
         public void RemoveItem(MaterialListBoxItem item)
         {
-            if (_items.IndexOf(item)<= _selectedIndex)
+            if (_items.IndexOf(item) <= _selectedIndex)
             {
                 _selectedIndex -= 1;
                 update_selection();
@@ -737,7 +735,7 @@ namespace MaterialSkin.Controls
                     _scrollBar.Value = _scrollBar.Minimum;
                 else if (_scrollBar.Maximum < _scrollBar.Value + Height)
                 {
-                    if (e.Delta>0)
+                    if (e.Delta > 0)
                         _scrollBar.Value -= e.Delta / 2;
                     else
                     { } //Do nothing, maximum reached
@@ -805,7 +803,7 @@ namespace MaterialSkin.Controls
                 index = -1;
             }
 
-            if (index >= 0 && index<Items.Count)
+            if (index >= 0 && index < Items.Count)
             {
                 _hoveredItem = index;
             }
@@ -824,7 +822,7 @@ namespace MaterialSkin.Controls
         {
             base.OnHandleCreated(e);
             _scrollBar.Size = new Size(12, Height - (ShowBorder ? 2 : 0));
-            _scrollBar.Location = new Point( Width - (_scrollBar.Width + (ShowBorder ? 1 : 0)), ShowBorder ? 1 : 0);
+            _scrollBar.Location = new Point(Width - (_scrollBar.Width + (ShowBorder ? 1 : 0)), ShowBorder ? 1 : 0);
             InvalidateScroll(this, e);
         }
 

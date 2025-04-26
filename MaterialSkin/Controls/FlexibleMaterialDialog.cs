@@ -105,8 +105,8 @@ namespace MaterialSkin.Controls
             // 
             // messageContainer
             // 
-            this.messageContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.messageContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.messageContainer.BackColor = System.Drawing.Color.White;
             this.messageContainer.Controls.Add(this.materialLabel1);
@@ -119,8 +119,8 @@ namespace MaterialSkin.Controls
             // 
             // materialLabel1
             // 
-            this.materialLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.materialLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.materialLabel1.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.FlexibleMaterialFormBindingSource, "MessageText", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.materialLabel1.Depth = 0;
@@ -144,8 +144,8 @@ namespace MaterialSkin.Controls
             // 
             // richTextBoxMessage
             // 
-            this.richTextBoxMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.richTextBoxMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBoxMessage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.richTextBoxMessage.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -839,8 +839,8 @@ namespace MaterialSkin.Controls
             FlexibleMaterialForm.Font = FONT;
             FlexibleMaterialForm.richTextBoxMessage.Font = FONT;
             FlexibleMaterialForm.richTextBoxMessage.Visible = UseRichTextBox;
-			FlexibleMaterialForm.materialLabel1.Font = FONT;
-			FlexibleMaterialForm.materialLabel1.Visible = !UseRichTextBox;
+            FlexibleMaterialForm.materialLabel1.Font = FONT;
+            FlexibleMaterialForm.materialLabel1.Visible = !UseRichTextBox;
 
             //Calculate the dialogs start size (Try to auto-size width to show longest text row). Also set the maximum dialog size.
             SetDialogSizes(FlexibleMaterialForm, text, caption);

@@ -1,12 +1,12 @@
 namespace MaterialSkin.Controls
 {
+    using MaterialSkin.Animations;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Drawing;
     using System.Drawing.Imaging;
     using System.Windows.Forms;
-    using MaterialSkin.Animations;
 
     public class MaterialTextBox2 : Control, IMaterialControl
     {
@@ -193,9 +193,9 @@ namespace MaterialSkin.Controls
             {
                 //if (_prefixsuffixText != value)
                 //{
-                    _prefixsuffixText = value;
-                    UpdateRects();
-                    Invalidate();
+                _prefixsuffixText = value;
+                UpdateRects();
+                Invalidate();
                 //}
             }
         }
@@ -244,12 +244,12 @@ namespace MaterialSkin.Controls
         public char PasswordChar { get { return baseTextBox.PasswordChar; } set { baseTextBox.PasswordChar = value; } }
 
         [Category("Behavior")]
-        public bool ShortcutsEnabled 
-        { 
-            get 
-            { return baseTextBox.ShortcutsEnabled; } 
-            set 
-            { 
+        public bool ShortcutsEnabled
+        {
+            get
+            { return baseTextBox.ShortcutsEnabled; }
+            set
+            {
                 baseTextBox.ShortcutsEnabled = value;
                 if (value == false)
                 {
@@ -472,7 +472,7 @@ namespace MaterialSkin.Controls
             }
         }
 
-        #if NETFRAMEWORK
+#if NETFRAMEWORK
         public new event EventHandler ContextMenuChanged
         {
             add
@@ -484,7 +484,7 @@ namespace MaterialSkin.Controls
                 baseTextBox.ContextMenuChanged -= value;
             }
         }
-        #endif
+#endif
 
         public new event EventHandler ContextMenuStripChanged
         {
@@ -1194,7 +1194,7 @@ namespace MaterialSkin.Controls
             }
         }
 
-       public event EventHandler TextAlignChanged
+        public event EventHandler TextAlignChanged
         {
             add
             {
@@ -1267,7 +1267,7 @@ namespace MaterialSkin.Controls
         private const int ACTIVATION_INDICATOR_HEIGHT = 2;
         private const int HELPER_TEXT_HEIGHT = 16;
         private const int FONT_HEIGHT = 20;
-        
+
         private int HEIGHT = 48;
 
         private int LINE_Y;
@@ -1321,7 +1321,7 @@ namespace MaterialSkin.Controls
                 Font = base.Font,
                 ForeColor = SkinManager.TextHighEmphasisColor,
                 Multiline = false,
-                Location = new Point(LEFT_PADDING, HEIGHT/2- FONT_HEIGHT/2),
+                Location = new Point(LEFT_PADDING, HEIGHT / 2 - FONT_HEIGHT / 2),
                 Width = Width - (LEFT_PADDING + RIGHT_PADDING),
                 Height = FONT_HEIGHT
             };
@@ -1383,7 +1383,7 @@ namespace MaterialSkin.Controls
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             g.Clear(Parent.BackColor);
             SolidBrush backBrush = new SolidBrush(DrawHelper.BlendColor(Parent.BackColor, SkinManager.BackgroundAlternativeColor, SkinManager.BackgroundAlternativeColor.A));
-            
+
             //backColor
             g.FillRectangle(
                 !Enabled ? SkinManager.BackgroundDisabledBrush : // Disabled
@@ -1456,7 +1456,7 @@ namespace MaterialSkin.Controls
                     Rectangle prefixRect = new Rectangle(
                         _left_padding - _prefix_padding,
                         hasHint && UseTallSize ? (hintRect.Y + hintRect.Height) - 2 : ClientRectangle.Y,
-//                        NativeText.MeasureLogString(_prefixsuffixText, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width,
+                        //                        NativeText.MeasureLogString(_prefixsuffixText, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width,
                         _prefix_padding,
                         hasHint && UseTallSize ? LINE_Y - (hintRect.Y + hintRect.Height) : LINE_Y);
 
@@ -1477,7 +1477,7 @@ namespace MaterialSkin.Controls
                 using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
                 {
                     Rectangle suffixRect = new Rectangle(
-                        Width - _right_padding ,
+                        Width - _right_padding,
                         hasHint && UseTallSize ? (hintRect.Y + hintRect.Height) - 2 : ClientRectangle.Y,
                         //NativeText.MeasureLogString(_prefixsuffixText, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width + PREFIX_SUFFIX_PADDING,
                         _suffix_padding,
@@ -1495,7 +1495,7 @@ namespace MaterialSkin.Controls
             }
 
             // Draw hint text
-            if(hasHint && UseTallSize && (isFocused || userTextPresent))
+            if (hasHint && UseTallSize && (isFocused || userTextPresent))
             {
                 using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
                 {
@@ -1535,14 +1535,14 @@ namespace MaterialSkin.Controls
             }
 
             // Draw error message
-            if (_showAssistiveText && _errorState && ErrorMessage!=null)
+            if (_showAssistiveText && _errorState && ErrorMessage != null)
             {
                 using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
                 {
                     NativeText.DrawTransparentText(
                     ErrorMessage,
                     SkinManager.getTextBoxFontBySize(hintTextSize),
-                    Enabled ? 
+                    Enabled ?
                     SkinManager.BackgroundHoverRedColor : // error state
                     SkinManager.TextDisabledOrHintColor, // Disabled
                     helperTextRect.Location,
@@ -1838,7 +1838,7 @@ namespace MaterialSkin.Controls
                 iconsErrorBrushes.Add("_trailingIcon", textureBrushRed);
             }
         }
-        
+
         #endregion
 
         private void UpdateHeight()
@@ -1870,7 +1870,7 @@ namespace MaterialSkin.Controls
             }
             else
                 _prefix_padding = 0;
-                
+
             if (_prefixsuffix == PrefixSuffixTypes.Suffix && _prefixsuffixText != null && _prefixsuffixText.Length > 0)
             {
                 using (NativeTextRenderer NativeText = new NativeTextRenderer(CreateGraphics()))

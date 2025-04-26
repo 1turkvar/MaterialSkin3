@@ -5,8 +5,8 @@
     using System.ComponentModel;
     using System.Drawing;
     using System.Drawing.Drawing2D;
-    using System.Windows.Forms;
     using System.Runtime.InteropServices;
+    using System.Windows.Forms;
 
     public class MaterialSnackBar : MaterialForm
     {
@@ -234,7 +234,7 @@
             Close();
         }
 
-         protected override void OnResize(EventArgs e)
+        protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
             UpdateRects();
@@ -274,7 +274,7 @@
 
             e.Graphics.Clear(BackColor);
 
-            
+
             // Calc text Rect
             Rectangle textRect = new Rectangle(
                 LEFT_RIGHT_PADDING,
@@ -357,8 +357,8 @@
 
             base.WndProc(ref message);
         }
-        
-       public new void Show()
+
+        public new void Show()
         {
             if (Owner == null)
             {

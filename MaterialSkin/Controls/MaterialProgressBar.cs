@@ -29,7 +29,7 @@
         protected override void OnPaint(PaintEventArgs e)
         {
             var doneProgress = (int)(Width * ((double)Value / Maximum));
-            e.Graphics.FillRectangle(Enabled ? 
+            e.Graphics.FillRectangle(Enabled ?
                 SkinManager.ColorScheme.PrimaryBrush :
                 new SolidBrush(DrawHelper.BlendColor(SkinManager.ColorScheme.PrimaryColor, SkinManager.SwitchOffDisabledThumbColor, 197)),
                 0, 0, doneProgress, Height);

@@ -6,10 +6,10 @@ namespace MaterialSkin.Controls
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Drawing;
+    using System.Runtime.InteropServices;
     using System.Security;
     using System.Windows.Forms;
-    using System.Runtime.InteropServices;
-    
+
     public enum MaterialScrollOrientation
     {
         Horizontal,
@@ -369,7 +369,7 @@ namespace MaterialSkin.Controls
                 ControlStyles.OptimizedDoubleBuffer |
                      ControlStyles.ResizeRedraw |
                      ControlStyles.Selectable |
-//                     ControlStyles.AllPaintingInWmPaint |
+                     //                     ControlStyles.AllPaintingInWmPaint |
                      ControlStyles.SupportsTransparentBackColor |
                      ControlStyles.UserPaint, true);
 
