@@ -68,12 +68,10 @@ namespace MaterialSkin.Controls
         {
             base.WndProc(ref m);
 
-
-            if (m.Msg == WM_PAINT)
+            if (m.Msg == WM_ENABLE)
             {
-                if (m.Msg == WM_ENABLE)
+                using (Graphics g = Graphics.FromHwnd(Handle))
                 {
-                    Graphics g = Graphics.FromHwnd(Handle);
                     Rectangle bounds = new Rectangle(0, 0, Width, Height);
                     g.FillRectangle(SkinManager.BackgroundDisabledBrush, bounds);
                 }
@@ -104,9 +102,7 @@ namespace MaterialSkin.Controls
             {
                 Invalidate();
             }
-
         }
-
     }
 
     [ToolboxItem(false)]
@@ -168,12 +164,10 @@ namespace MaterialSkin.Controls
         {
             base.WndProc(ref m);
 
-
-            if (m.Msg == WM_PAINT)
+            if (m.Msg == WM_ENABLE)
             {
-                if (m.Msg == WM_ENABLE)
+                using (Graphics g = Graphics.FromHwnd(Handle))
                 {
-                    Graphics g = Graphics.FromHwnd(Handle);
                     Rectangle bounds = new Rectangle(0, 0, Width, Height);
                     g.FillRectangle(SkinManager.BackgroundDisabledBrush, bounds);
                 }
@@ -204,7 +198,6 @@ namespace MaterialSkin.Controls
             {
                 Invalidate();
             }
-
         }
     }
 
@@ -224,16 +217,15 @@ namespace MaterialSkin.Controls
         {
             Items.AddRange(new[]
             {
-                    undo,
-                    seperator1,
-                    cut,
-                    copy,
-                    paste,
-                    delete,
-                    seperator2,
-                    selectAll
-                });
+                undo,
+                seperator1,
+                cut,
+                copy,
+                paste,
+                delete,
+                seperator2,
+                selectAll
+            });
         }
     }
-
 }

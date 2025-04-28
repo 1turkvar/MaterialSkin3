@@ -10,11 +10,10 @@
     using System.Windows.Forms;
 
     [ToolboxItem(false), Description("This control has been replaced by MaterialTextBox2"), Obsolete("Use MaterialTextBox2 instead", false)]
-    public class MaterialTextBox : RichTextBox, IMaterialControl
+    public class MaterialTextBox : RichTextBox, IMaterialControl, IDisposable
     {
-
-        MaterialContextMenuStrip cms = new TextBoxContextMenuStrip();
-        ContextMenuStrip _lastContextMenuStrip = new ContextMenuStrip();
+        private readonly MaterialContextMenuStrip cms = new TextBoxContextMenuStrip();
+        private ContextMenuStrip _lastContextMenuStrip = new ContextMenuStrip();
 
         //Properties for managing the material design properties
         [Browsable(false)]
@@ -75,7 +74,7 @@
             {
                 _leadingIcon = value;
                 UpdateRects(false);
-                preProcessIcons();
+                PreProcessIcons();
                 if (AutoSize)
                 {
                     Refresh();
@@ -100,7 +99,7 @@
             {
                 _trailingIcon = value;
                 UpdateRects(false);
-                preProcessIcons();
+                PreProcessIcons();
                 if (AutoSize)
                 {
                     Refresh();
@@ -195,7 +194,7 @@
                 _leaveOnEnterKey = value;
                 if (value)
                 {
-                    KeyDown += new KeyEventHandler(LeaveOnEnterKey_KeyDown);
+                    KeyDown += LeaveOnEnterKey_KeyDown;
                 }
                 else
                 {
@@ -240,12 +239,12 @@
 
             SkinManager.ColorSchemeChanged += sender =>
             {
-                preProcessIcons();
+                PreProcessIcons();
             };
 
             SkinManager.ThemeChanged += sender =>
             {
-                preProcessIcons();
+                PreProcessIcons();
             };
 
             cms.Opening += ContextMenuStripOnOpening;
@@ -253,6 +252,10 @@
             ContextMenuStrip = cms;
 
             MaxLength = 50;
+
+            // Initialize dictionaries
+            iconsBrushes = new Dictionary<string, TextureBrush>(2);
+            iconsErrorBrushes = new Dictionary<string, TextureBrush>(2);
         }
 
         private const int EM_SETPASSWORDCHAR = 0x00cc;
@@ -268,7 +271,8 @@
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.DoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
 
-            if (Password) SendMessage(Handle, EM_SETPASSWORDCHAR, 'T', 0);
+            // Change password char from 'T' to '*' (more standard)
+            if (Password) SendMessage(Handle, EM_SETPASSWORDCHAR, '*', 0);
 
             // Size and padding
             HEIGHT = UseTallSize ? 50 : 36;
@@ -295,12 +299,26 @@
             };
             HScroll += (sender, args) =>
             {
-                SendMessage(this.Handle, EM_GETSCROLLPOS, 0, ref scrollPos);
-                Invalidate();
+                try
+                {
+                    SendMessage(this.Handle, EM_GETSCROLLPOS, 0, ref scrollPos);
+                    Invalidate();
+                }
+                catch
+                {
+                    // Suppress any errors related to scroll position
+                }
             };
             KeyDown += (sender, args) =>
             {
-                SendMessage(this.Handle, EM_GETSCROLLPOS, 0, ref scrollPos);
+                try
+                {
+                    SendMessage(this.Handle, EM_GETSCROLLPOS, 0, ref scrollPos);
+                }
+                catch
+                {
+                    // Suppress any errors related to scroll position
+                }
             };
         }
 
@@ -318,6 +336,8 @@
 
         private static Size ResizeIcon(Image Icon)
         {
+            if (Icon == null) return Size.Empty;
+
             int newWidth, newHeight;
             //Resize icon if greater than ICON_SIZE
             if (Icon.Width > ICON_SIZE || Icon.Height > ICON_SIZE)
@@ -347,8 +367,9 @@
             }
             else
             {
-                newWidth = Icon.Width;
-                newHeight = Icon.Height;
+                // Ensure minimum size for small icons (minimum of 16px)
+                newWidth = Math.Max(Icon.Width, 16);
+                newHeight = Math.Max(Icon.Height, 16);
             }
 
             return new Size()
@@ -358,9 +379,12 @@
             };
         }
 
-        private void preProcessIcons()
+        private void PreProcessIcons()
         {
             if (_trailingIcon == null && _leadingIcon == null) return;
+
+            // Clean existing brushes to prevent memory leaks
+            CleanupBrushes();
 
             // Calculate lightness and color
             float l = (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT) ? 0f : 1f;
@@ -383,112 +407,139 @@
             ColorMatrix colorMatrixGray = new ColorMatrix(matrixGray);
             ColorMatrix colorMatrixRed = new ColorMatrix(matrixRed);
 
-            ImageAttributes grayImageAttributes = new ImageAttributes();
-            ImageAttributes redImageAttributes = new ImageAttributes();
-
-            // Set color matrices
-            grayImageAttributes.SetColorMatrix(colorMatrixGray, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-            redImageAttributes.SetColorMatrix(colorMatrixRed, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-
-            // Create brushes
-            iconsBrushes = new Dictionary<string, TextureBrush>(2);
-            iconsErrorBrushes = new Dictionary<string, TextureBrush>(2);
-
-            // Image Rect
-            Rectangle destRect = new Rectangle(0, 0, ICON_SIZE, ICON_SIZE);
-
-            if (_leadingIcon != null)
+            using (ImageAttributes grayImageAttributes = new ImageAttributes())
+            using (ImageAttributes redImageAttributes = new ImageAttributes())
             {
-                // ********************
-                // *** _leadingIcon ***
-                // ********************
+                // Set color matrices
+                grayImageAttributes.SetColorMatrix(colorMatrixGray, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                redImageAttributes.SetColorMatrix(colorMatrixRed, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
-                //Resize icon if greater than ICON_SIZE
-                Size newSize_leadingIcon = ResizeIcon(_leadingIcon);
-                Bitmap _leadingIconIconResized = new Bitmap(_leadingIcon, newSize_leadingIcon.Width, newSize_leadingIcon.Height);
+                // Create brushes
+                iconsBrushes = new Dictionary<string, TextureBrush>(2);
+                iconsErrorBrushes = new Dictionary<string, TextureBrush>(2);
 
-                // Create a pre-processed copy of the image (GRAY)
-                Bitmap bgray = new Bitmap(destRect.Width, destRect.Height);
-                using (Graphics gGray = Graphics.FromImage(bgray))
+                // Image Rect
+                Rectangle destRect = new Rectangle(0, 0, ICON_SIZE, ICON_SIZE);
+
+                if (_leadingIcon != null)
                 {
-                    gGray.DrawImage(_leadingIconIconResized,
-                        new Point[] {
-                                    new Point(0, 0),
-                                    new Point(destRect.Width, 0),
-                                    new Point(0, destRect.Height),
-                        },
-                        destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                    // ********************
+                    // *** _leadingIcon ***
+                    // ********************
+
+                    //Resize icon if greater than ICON_SIZE
+                    Size newSize_leadingIcon = ResizeIcon(_leadingIcon);
+                    using (Bitmap _leadingIconIconResized = new Bitmap(_leadingIcon, newSize_leadingIcon.Width, newSize_leadingIcon.Height))
+                    {
+                        // Create a pre-processed copy of the image (GRAY)
+                        using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
+                        {
+                            using (Graphics gGray = Graphics.FromImage(bgray))
+                            {
+                                gGray.DrawImage(_leadingIconIconResized,
+                                    new Point[] {
+                                                new Point(0, 0),
+                                                new Point(destRect.Width, 0),
+                                                new Point(0, destRect.Height),
+                                    },
+                                    destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                            }
+
+                            // added processed image to brush for drawing
+                            TextureBrush textureBrushGray = new TextureBrush(bgray);
+                            textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+
+                            var iconRect = _leadingIconBounds;
+                            textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _leadingIconIconResized.Width / 2,
+                                                            iconRect.Y + iconRect.Height / 2 - _leadingIconIconResized.Height / 2);
+
+                            // add to dictionary
+                            iconsBrushes.Add("_leadingIcon", textureBrushGray);
+                        }
+                    }
                 }
 
-                // added processed image to brush for drawing
-                TextureBrush textureBrushGray = new TextureBrush(bgray);
+                if (_trailingIcon != null)
+                {
+                    // *********************
+                    // *** _trailingIcon ***
+                    // *********************
 
-                textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+                    //Resize icon if greater than ICON_SIZE
+                    Size newSize_trailingIcon = ResizeIcon(_trailingIcon);
+                    using (Bitmap _trailingIconResized = new Bitmap(_trailingIcon, newSize_trailingIcon.Width, newSize_trailingIcon.Height))
+                    {
+                        // Create a pre-processed copy of the image (GRAY)
+                        using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
+                        {
+                            using (Graphics gGray = Graphics.FromImage(bgray))
+                            {
+                                gGray.DrawImage(_trailingIconResized,
+                                    new Point[] {
+                                                new Point(0, 0),
+                                                new Point(destRect.Width, 0),
+                                                new Point(0, destRect.Height),
+                                    },
+                                    destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                            }
 
-                var iconRect = _leadingIconBounds;
+                            //Create a pre - processed copy of the image(RED)
+                            using (Bitmap bred = new Bitmap(destRect.Width, destRect.Height))
+                            {
+                                using (Graphics gred = Graphics.FromImage(bred))
+                                {
+                                    gred.DrawImage(_trailingIconResized,
+                                        new Point[] {
+                                                    new Point(0, 0),
+                                                    new Point(destRect.Width, 0),
+                                                    new Point(0, destRect.Height),
+                                        },
+                                        destRect, GraphicsUnit.Pixel, redImageAttributes);
+                                }
 
-                textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _leadingIconIconResized.Width / 2,
-                                                    iconRect.Y + iconRect.Height / 2 - _leadingIconIconResized.Height / 2);
+                                // added processed image to brush for drawing
+                                TextureBrush textureBrushGray = new TextureBrush(bgray);
+                                TextureBrush textureBrushRed = new TextureBrush(bred);
 
-                // add to dictionary
-                iconsBrushes.Add("_leadingIcon", textureBrushGray);
+                                textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+                                textureBrushRed.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+
+                                var iconRect = _trailingIconBounds;
+
+                                textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
+                                                                    iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
+                                textureBrushRed.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
+                                                                     iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
+
+                                // add to dictionary
+                                iconsBrushes.Add("_trailingIcon", textureBrushGray);
+                                iconsErrorBrushes.Add("_trailingIcon", textureBrushRed);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Clean up brushes to prevent memory leaks
+        private void CleanupBrushes()
+        {
+            if (iconsBrushes != null)
+            {
+                foreach (var brush in iconsBrushes.Values)
+                {
+                    brush.Dispose();
+                }
+                iconsBrushes.Clear();
             }
 
-            if (_trailingIcon != null)
+            if (iconsErrorBrushes != null)
             {
-                // *********************
-                // *** _trailingIcon ***
-                // *********************
-
-                //Resize icon if greater than ICON_SIZE
-                Size newSize_trailingIcon = ResizeIcon(_trailingIcon);
-                Bitmap _trailingIconResized = new Bitmap(_trailingIcon, newSize_trailingIcon.Width, newSize_trailingIcon.Height);
-
-                // Create a pre-processed copy of the image (GRAY)
-                Bitmap bgray = new Bitmap(destRect.Width, destRect.Height);
-                using (Graphics gGray = Graphics.FromImage(bgray))
+                foreach (var brush in iconsErrorBrushes.Values)
                 {
-                    gGray.DrawImage(_trailingIconResized,
-                        new Point[] {
-                                    new Point(0, 0),
-                                    new Point(destRect.Width, 0),
-                                    new Point(0, destRect.Height),
-                        },
-                        destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                    brush.Dispose();
                 }
-
-                //Create a pre - processed copy of the image(RED)
-                Bitmap bred = new Bitmap(destRect.Width, destRect.Height);
-                using (Graphics gred = Graphics.FromImage(bred))
-                {
-                    gred.DrawImage(_trailingIconResized,
-                        new Point[] {
-                                    new Point(0, 0),
-                                    new Point(destRect.Width, 0),
-                                    new Point(0, destRect.Height),
-                        },
-                        destRect, GraphicsUnit.Pixel, redImageAttributes);
-                }
-
-
-                // added processed image to brush for drawing
-                TextureBrush textureBrushGray = new TextureBrush(bgray);
-                TextureBrush textureBrushRed = new TextureBrush(bred);
-
-                textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
-                textureBrushRed.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
-
-                var iconRect = _trailingIconBounds;
-
-                textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
-                                                    iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
-                textureBrushRed.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
-                                                     iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
-
-                // add to dictionary
-                iconsBrushes.Add("_trailingIcon", textureBrushGray);
-                //iconsSelectedBrushes.Add(0, textureBrushColor);
-                iconsErrorBrushes.Add("_trailingIcon", textureBrushRed);
+                iconsErrorBrushes.Clear();
             }
         }
 
@@ -518,7 +569,6 @@
                 RECT rc = new RECT(rect);
                 SendMessageRefRect(Handle, EM_SETRECT, 0, ref rc);
             }
-
         }
 
         public void SetErrorState(bool ErrorState)
@@ -540,17 +590,18 @@
 
             g.Clear(Parent.BackColor);
 
-            SolidBrush backBrush = new SolidBrush(DrawHelper.BlendColor(Parent.BackColor, SkinManager.BackgroundAlternativeColor, SkinManager.BackgroundAlternativeColor.A));
-
-            g.FillRectangle(
-                !Enabled ? SkinManager.BackgroundDisabledBrush : // Disabled
-                Focused ? SkinManager.BackgroundFocusBrush :  // Focused
-                MouseState == MouseState.HOVER && (!ReadOnly || (ReadOnly && !AnimateReadOnly)) ? SkinManager.BackgroundHoverBrush : // Hover
-                backBrush, // Normal
-                ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, LINE_Y);
+            using (SolidBrush backBrush = new SolidBrush(DrawHelper.BlendColor(Parent.BackColor, SkinManager.BackgroundAlternativeColor, SkinManager.BackgroundAlternativeColor.A)))
+            {
+                g.FillRectangle(
+                    !Enabled ? SkinManager.BackgroundDisabledBrush : // Disabled
+                    Focused ? SkinManager.BackgroundFocusBrush :  // Focused
+                    MouseState == MouseState.HOVER && (!ReadOnly || (ReadOnly && !AnimateReadOnly)) ? SkinManager.BackgroundHoverBrush : // Hover
+                    backBrush, // Normal
+                    ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, LINE_Y);
+            }
 
             //Leading Icon
-            if (LeadingIcon != null)
+            if (LeadingIcon != null && iconsBrushes.ContainsKey("_leadingIcon"))
             {
                 g.FillRectangle(iconsBrushes["_leadingIcon"], _leadingIconBounds);
             }
@@ -558,9 +609,9 @@
             //Trailing Icon
             if (TrailingIcon != null)
             {
-                if (_errorState)
+                if (_errorState && iconsErrorBrushes.ContainsKey("_trailingIcon"))
                     g.FillRectangle(iconsErrorBrushes["_trailingIcon"], _trailingIconBounds);
-                else
+                else if (iconsBrushes.ContainsKey("_trailingIcon"))
                     g.FillRectangle(iconsBrushes["_trailingIcon"], _trailingIconBounds);
             }
 
@@ -618,7 +669,7 @@
             }
 
             // Text stuff:
-            string textToDisplay = Password ? Text.ToSecureString() : Text;
+            string textToDisplay = Password ? new string('*', Text.Length) : Text;
             string textSelected;
             Rectangle textSelectRect;
 
@@ -635,8 +686,11 @@
             using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
             {
                 // Selection rects calc
-                string textBeforeSelection = textToDisplay.Substring(0, SelectionStart);
-                textSelected = textToDisplay.Substring(SelectionStart, SelectionLength);
+                int selectStart = Math.Min(SelectionStart, Text.Length);
+                int selectLength = Math.Min(SelectionLength, Text.Length - selectStart);
+
+                string textBeforeSelection = textToDisplay.Substring(0, selectStart);
+                textSelected = textToDisplay.Substring(selectStart, selectLength);
 
                 int selectX = NativeText.MeasureLogString(textBeforeSelection, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width;
                 int selectWidth = NativeText.MeasureLogString(textSelected, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width;
@@ -646,7 +700,7 @@
                      textRect.Y + BOTTOM_PADDING : // tall and hint
                      LINE_Y / 3 - BOTTOM_PADDING : // tall and no hint
                      BOTTOM_PADDING, // not tall
-                    selectWidth,
+                    selectWidth > 0 ? selectWidth : 1, // Ensure at least 1px width for cursor
                     UseTallSize ? hasHint ?
                     textRect.Height - BOTTOM_PADDING * 2 : // tall and hint
                     (int)(LINE_Y / 2) : // tall and no hint
@@ -681,6 +735,7 @@
             }
 
             g.Clip = new Region(ClientRectangle);
+
 
             // Draw hint text
             if (hasHint && (UseTallSize || String.IsNullOrEmpty(Text)))
@@ -765,7 +820,7 @@
             Size = new Size(Width, HEIGHT);
             LINE_Y = HEIGHT - BOTTOM_PADDING;
             UpdateRects(false);
-            preProcessIcons();
+            PreProcessIcons();
 
             if (DesignMode)
             {

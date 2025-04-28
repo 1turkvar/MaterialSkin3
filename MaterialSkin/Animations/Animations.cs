@@ -1,7 +1,6 @@
 ﻿namespace MaterialSkin.Animations
 {
     using System;
-
     /// <summary>
     /// Defines the AnimationType
     /// </summary>
@@ -11,23 +10,19 @@
         /// Defines the Linear
         /// </summary>
         Linear,
-
         /// <summary>
         /// Defines the EaseInOut
         /// </summary>
         EaseInOut,
-
         /// <summary>
         /// Defines the EaseOut
         /// </summary>
         EaseOut,
-
         /// <summary>
         /// Defines the CustomQuadratic
         /// </summary>
         CustomQuadratic
     }
-
     /// <summary>
     /// Defines the <see cref="AnimationLinear" />
     /// </summary>
@@ -43,7 +38,6 @@
             return progress;
         }
     }
-
     /// <summary>
     /// Defines the <see cref="AnimationEaseInOut" />
     /// </summary>
@@ -52,13 +46,11 @@
         /// <summary>
         /// Defines the PI
         /// </summary>
-        public static double PI = Math.PI;
-
+        public static readonly double PI = Math.PI;
         /// <summary>
         /// Defines the PI_HALF
         /// </summary>
-        public static double PI_HALF = Math.PI / 2;
-
+        public static readonly double PI_HALF = Math.PI / 2;
         /// <summary>
         /// The CalculateProgress
         /// </summary>
@@ -68,7 +60,6 @@
         {
             return EaseInOut(progress);
         }
-
         /// <summary>
         /// The EaseInOut
         /// </summary>
@@ -79,11 +70,10 @@
             return s - Math.Sin(s * 2 * PI) / (2 * PI);
         }
     }
-
     /// <summary>
     /// Defines the <see cref="AnimationEaseOut" />
     /// </summary>
-    public static class AnimationEaseOut
+    internal static class AnimationEaseOut
     {
         /// <summary>
         /// The CalculateProgress
@@ -95,11 +85,10 @@
             return -1 * progress * (progress - 2);
         }
     }
-
     /// <summary>
     /// Defines the <see cref="AnimationCustomQuadratic" />
     /// </summary>
-    public static class AnimationCustomQuadratic
+    internal static class AnimationCustomQuadratic
     {
         /// <summary>
         /// The CalculateProgress

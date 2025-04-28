@@ -408,9 +408,9 @@
         }
 
         /// <summary>
-        /// The OnPaint
+        /// Özel çizim işlemlerini gerçekleştirir
         /// </summary>
-        /// <param name="pevent">The pevent<see cref="PaintEventArgs"/></param>
+        /// <param name="pevent">Çizim olayı argümanları</param>
         protected override void OnPaint(PaintEventArgs pevent)
         {
             var g = pevent.Graphics;
@@ -423,19 +423,47 @@
 
             g.Clear(Parent.BackColor);
 
-            // button rectand path
+            // Button rect ve path oluşturma
             RectangleF buttonRectF = new RectangleF(ClientRectangle.Location, ClientRectangle.Size);
             buttonRectF.X -= 0.5f;
             buttonRectF.Y -= 0.5f;
-            GraphicsPath buttonPath = DrawHelper.CreateRoundRect(buttonRectF, 4);
 
-            // button shadow (blend with form shadow)
-            DrawHelper.DrawSquareShadow(g, ClientRectangle);
+            using (GraphicsPath buttonPath = DrawHelper.CreateRoundRect(buttonRectF, 4))
+            {
+                // Button gölgesini çiz
+                DrawHelper.DrawSquareShadow(g, ClientRectangle);
 
+                // Button arkaplanını çiz
+                DrawButtonBackground(g, buttonPath);
+
+                // Hover efektini çiz
+                DrawHoverEffect(g, buttonPath, hoverAnimProgress);
+
+                // Focus efektini çiz
+                DrawFocusEffect(g, buttonPath, focusAnimProgress);
+
+                // Outlined tipinde kenarlık çiz
+                if (Type == MaterialButtonType.Outlined)
+                {
+                    DrawOutline(g, buttonPath, buttonRectF);
+                }
+
+                // Ripple efektini çiz
+                DrawRippleEffect(g, buttonRectF);
+
+                // Metni çiz
+                DrawButtonText(g);
+
+                // İkonu çiz
+                DrawButtonIcon(g);
+            }
+        }
+
+        private void DrawButtonBackground(Graphics g, GraphicsPath buttonPath)
+        {
             if (Type == MaterialButtonType.Contained)
             {
-                // draw button rect
-                // Disabled
+                // Devre dışı
                 if (!Enabled)
                 {
                     using (SolidBrush disabledBrush = new SolidBrush(DrawHelper.BlendColor(Parent.BackColor, SkinManager.BackgroundDisabledColor, SkinManager.BackgroundDisabledColor.A)))
@@ -443,12 +471,12 @@
                         g.FillPath(disabledBrush, buttonPath);
                     }
                 }
-                // High emphasis
+                // Yüksek vurgu
                 else if (HighEmphasis)
                 {
                     g.FillPath(UseAccentColor ? SkinManager.ColorScheme.AccentBrush : SkinManager.ColorScheme.PrimaryBrush, buttonPath);
                 }
-                // Mormal
+                // Normal
                 else
                 {
                     using (SolidBrush normalBrush = new SolidBrush(SkinManager.BackgroundColor))
@@ -461,104 +489,184 @@
             {
                 g.Clear(Parent.BackColor);
             }
+        }
 
-            //Hover
+        private void DrawHoverEffect(Graphics g, GraphicsPath buttonPath, double hoverAnimProgress)
+        {
             if (hoverAnimProgress > 0)
             {
-                using (SolidBrush hoverBrush = new SolidBrush(Color.FromArgb(
-                    (int)(HighEmphasis && Type == MaterialButtonType.Contained ? hoverAnimProgress * 80 : hoverAnimProgress * SkinManager.BackgroundHoverColor.A), (UseAccentColor ? (HighEmphasis && Type == MaterialButtonType.Contained ?
-                    SkinManager.ColorScheme.AccentColor.Lighten(0.5f) : // Contained with Emphasis - with accent
-                    SkinManager.ColorScheme.AccentColor) : // Not Contained Or Low Emphasis - with accent
-                    (Type == MaterialButtonType.Contained && HighEmphasis ? SkinManager.ColorScheme.LightPrimaryColor : // Contained with Emphasis without accent
-                    SkinManager.ColorScheme.PrimaryColor)).RemoveAlpha()))) // Normal or Emphasis without accent
+                Color hoverColor = GetEffectColor(true, hoverAnimProgress);
+                using (SolidBrush hoverBrush = new SolidBrush(hoverColor))
                 {
                     g.FillPath(hoverBrush, buttonPath);
                 }
             }
+        }
 
-            //Focus
+        private void DrawFocusEffect(Graphics g, GraphicsPath buttonPath, double focusAnimProgress)
+        {
             if (focusAnimProgress > 0)
             {
-                using (SolidBrush focusBrush = new SolidBrush(Color.FromArgb(
-                    (int)(HighEmphasis && Type == MaterialButtonType.Contained ? focusAnimProgress * 80 : focusAnimProgress * SkinManager.BackgroundFocusColor.A), (UseAccentColor ? (HighEmphasis && Type == MaterialButtonType.Contained ?
-                    SkinManager.ColorScheme.AccentColor.Lighten(0.5f) : // Contained with Emphasis - with accent
-                    SkinManager.ColorScheme.AccentColor) : // Not Contained Or Low Emphasis - with accent
-                    (Type == MaterialButtonType.Contained && HighEmphasis ? SkinManager.ColorScheme.LightPrimaryColor : // Contained with Emphasis without accent
-                    SkinManager.ColorScheme.PrimaryColor)).RemoveAlpha()))) // Normal or Emphasis without accent
+                Color focusColor = GetEffectColor(false, focusAnimProgress);
+                using (SolidBrush focusBrush = new SolidBrush(focusColor))
                 {
                     g.FillPath(focusBrush, buttonPath);
                 }
             }
+        }
 
-            if (Type == MaterialButtonType.Outlined)
+        private Color GetEffectColor(bool isHover, double animProgress)
+        {
+            int alpha = (int)(HighEmphasis && Type == MaterialButtonType.Contained ?
+                             animProgress * 80 :
+                             animProgress * (isHover ? SkinManager.BackgroundHoverColor.A : SkinManager.BackgroundFocusColor.A));
+
+            Color baseColor;
+
+            if (UseAccentColor)
             {
-                using (Pen outlinePen = new Pen(Enabled ? SkinManager.DividersAlternativeColor : SkinManager.DividersColor, 1))
-                {
-                    buttonRectF.X += 0.5f;
-                    buttonRectF.Y += 0.5f;
-                    g.DrawPath(outlinePen, buttonPath);
-                }
+                if (HighEmphasis && Type == MaterialButtonType.Contained)
+                    baseColor = SkinManager.ColorScheme.AccentColor.Lighten(0.5f);
+                else
+                    baseColor = SkinManager.ColorScheme.AccentColor;
+            }
+            else
+            {
+                if (Type == MaterialButtonType.Contained && HighEmphasis)
+                    baseColor = SkinManager.ColorScheme.LightPrimaryColor;
+                else
+                    baseColor = SkinManager.ColorScheme.PrimaryColor;
             }
 
-            //Ripple
+            return Color.FromArgb(alpha, baseColor.RemoveAlpha());
+        }
+
+        private void DrawOutline(Graphics g, GraphicsPath buttonPath, RectangleF buttonRectF)
+        {
+            using (Pen outlinePen = new Pen(Enabled ? SkinManager.DividersAlternativeColor : SkinManager.DividersColor, 1))
+            {
+                buttonRectF.X += 0.5f;
+                buttonRectF.Y += 0.5f;
+                g.DrawPath(outlinePen, buttonPath);
+            }
+        }
+
+        private void DrawRippleEffect(Graphics g, RectangleF buttonRectF)
+        {
             if (_animationManager.IsAnimating())
             {
                 g.Clip = new Region(buttonRectF);
-                for (var i = 0; i < _animationManager.GetAnimationCount(); i++)
+                try
                 {
-                    var animationValue = _animationManager.GetProgress(i);
-                    var animationSource = _animationManager.GetSource(i);
-
-                    using (Brush rippleBrush = new SolidBrush(
-                        Color.FromArgb((int)(100 - (animationValue * 100)), // Alpha animation
-                        (Type == MaterialButtonType.Contained && HighEmphasis ? (UseAccentColor ?
-                            SkinManager.ColorScheme.AccentColor.Lighten(0.5f) : // Emphasis with accent
-                            SkinManager.ColorScheme.LightPrimaryColor) : // Emphasis
-                            (UseAccentColor ? SkinManager.ColorScheme.AccentColor : // Normal with accent
-                            SkinManager.Theme == MaterialSkinManager.Themes.LIGHT ? SkinManager.ColorScheme.PrimaryColor : SkinManager.ColorScheme.LightPrimaryColor))))) // Normal
+                    for (var i = 0; i < _animationManager.GetAnimationCount(); i++)
                     {
-                        var rippleSize = (int)(animationValue * Width * 2);
-                        g.FillEllipse(rippleBrush, new Rectangle(animationSource.X - rippleSize / 2, animationSource.Y - rippleSize / 2, rippleSize, rippleSize));
+                        var animationValue = _animationManager.GetProgress(i);
+                        var animationSource = _animationManager.GetSource(i);
+
+                        Color rippleColor = GetRippleColor();
+                        using (Brush rippleBrush = new SolidBrush(Color.FromArgb((int)(100 - (animationValue * 100)), rippleColor)))
+                        {
+                            var rippleSize = (int)(animationValue * Width * 2);
+                            g.FillEllipse(rippleBrush, new Rectangle(animationSource.X - rippleSize / 2, animationSource.Y - rippleSize / 2, rippleSize, rippleSize));
+                        }
                     }
                 }
-                g.ResetClip();
+                finally
+                {
+                    g.ResetClip();
+                }
             }
+        }
 
-            //Text
+        private Color GetRippleColor()
+        {
+            if (Type == MaterialButtonType.Contained && HighEmphasis)
+            {
+                return UseAccentColor ? SkinManager.ColorScheme.AccentColor.Lighten(0.5f) : SkinManager.ColorScheme.LightPrimaryColor;
+            }
+            else
+            {
+                return UseAccentColor ?
+                       SkinManager.ColorScheme.AccentColor :
+                       (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT ?
+                       SkinManager.ColorScheme.PrimaryColor :
+                       SkinManager.ColorScheme.LightPrimaryColor);
+            }
+        }
+
+        private void DrawButtonText(Graphics g)
+        {
+            // Text alanını hesapla
             var textRect = ClientRectangle;
             if (Icon != null)
             {
-                textRect.Width -= 8 + ICON_SIZE + 4 + 8; // left padding + icon width + space between Icon and Text + right padding
-                textRect.X += 8 + ICON_SIZE + 4; // left padding + icon width + space between Icon and Text
+                int ICON_SIZE = 24; // Sabit değeri tanımla
+                textRect.Width -= 8 + ICON_SIZE + 4 + 8;
+                textRect.X += 8 + ICON_SIZE + 4;
             }
 
-            Color textColor = Enabled ? (HighEmphasis ? (Type == MaterialButtonType.Text || Type == MaterialButtonType.Outlined) ?
-                UseAccentColor ? SkinManager.ColorScheme.AccentColor : // Outline or Text and accent and emphasis
-                NoAccentTextColor == Color.Empty ?
-                SkinManager.ColorScheme.PrimaryColor :  // Outline or Text and emphasis
-                NoAccentTextColor : // User defined Outline or Text and emphasis
-                SkinManager.ColorScheme.TextColor : // Contained and Emphasis
-                SkinManager.TextHighEmphasisColor) : // Cointained and accent
-                SkinManager.TextDisabledOrHintColor; // Disabled
+            // Text rengini belirle
+            Color textColor = GetTextColor();
 
+            // Metni çiz
             using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
             {
+                string formattedText = FormatText(base.Text);
                 NativeText.DrawMultilineTransparentText(
-                    CharacterCasing == CharacterCasingEnum.Upper ? base.Text.ToUpper() : CharacterCasing == CharacterCasingEnum.Lower ? base.Text.ToLower() :
-                        CharacterCasing == CharacterCasingEnum.Title ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(base.Text.ToLower()) : base.Text,
+                    formattedText,
                     SkinManager.getLogFontByType(MaterialSkinManager.fontType.Button),
                     textColor,
                     textRect.Location,
                     textRect.Size,
                     NativeTextRenderer.TextAlignFlags.Center | NativeTextRenderer.TextAlignFlags.Middle);
             }
+        }
 
-            //Icon
+        private Color GetTextColor()
+        {
+            if (!Enabled)
+                return SkinManager.TextDisabledOrHintColor;
+
+            if (HighEmphasis)
+            {
+                if (Type == MaterialButtonType.Text || Type == MaterialButtonType.Outlined)
+                {
+                    if (UseAccentColor)
+                        return SkinManager.ColorScheme.AccentColor;
+
+                    return NoAccentTextColor == Color.Empty ?
+                          SkinManager.ColorScheme.PrimaryColor :
+                          NoAccentTextColor;
+                }
+                return SkinManager.ColorScheme.TextColor;
+            }
+
+            return SkinManager.TextHighEmphasisColor;
+        }
+
+        private string FormatText(string text)
+        {
+            switch (CharacterCasing)
+            {
+                case CharacterCasingEnum.Upper:
+                    return text.ToUpper();
+                case CharacterCasingEnum.Lower:
+                    return text.ToLower();
+                case CharacterCasingEnum.Title:
+                    return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(text.ToLower());
+                default:
+                    return text;
+            }
+        }
+
+        private void DrawButtonIcon(Graphics g)
+        {
+            int ICON_SIZE = 24; // Sabit değeri tanımla
             var iconRect = new Rectangle(8, (Height / 2) - (ICON_SIZE / 2), ICON_SIZE, ICON_SIZE);
 
             if (string.IsNullOrEmpty(Text))
             {
-                // Center Icon
+                // İkonu ortala
                 iconRect.X += 2;
             }
 

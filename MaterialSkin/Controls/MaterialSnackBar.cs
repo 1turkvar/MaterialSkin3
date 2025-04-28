@@ -19,7 +19,7 @@
         private MaterialButton _actionButton = new MaterialButton();
         private Timer _duration = new Timer();      // Timer that checks when the drop down is fully visible
 
-        private AnimationManager _AnimationManager;
+        private AnimationManager _animationManager;
         private bool _closingAnimationDone = false;
         private bool _useAccentColor;
         private bool CloseAnimation = false;
@@ -142,12 +142,12 @@
 
             Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 6, 6));
 
-            _AnimationManager = new AnimationManager();
-            _AnimationManager.AnimationType = AnimationType.EaseOut;
-            _AnimationManager.Increment = 0.03;
-            _AnimationManager.OnAnimationProgress += _AnimationManager_OnAnimationProgress;
+            _animationManager = new AnimationManager();
+            _animationManager.AnimationType = AnimationType.EaseOut;
+            _animationManager.Increment = 0.03;
+            _animationManager.OnAnimationProgress += _animationManager_OnAnimationProgress;
 
-            _duration.Tick += new EventHandler(duration_Tick);
+            _duration.Tick += new EventHandler(Duration_Tick);
 
             _actionButton = new MaterialButton
             {
@@ -163,6 +163,7 @@
             {
                 ActionButtonClick?.Invoke(this, new EventArgs());
                 _closingAnimationDone = false;
+                CleanupResources();
                 Close();
             };
 
@@ -172,7 +173,6 @@
             }
 
             UpdateRects();
-
         }
 
         public MaterialSnackBar() : this("SnackBar Text", 3000, false, "OK", false)
@@ -222,15 +222,17 @@
             _actionButton.Left = Width - BUTTON_PADDING - _actionButton.Width;  //Button minimum width management
             _actionButton.Visible = _showActionButton;
 
-            Width = TextRenderer.MeasureText(_text, SkinManager.getFontByType(MaterialSkinManager.fontType.Body2)).Width + (2 * LEFT_RIGHT_PADDING) + _actionButton.Width + 48;
+            // İyileştirilmiş genişlik hesaplama
+            Width = Math.Min(568, TextRenderer.MeasureText(_text, SkinManager.getFontByType(MaterialSkinManager.fontType.Body2),
+                     new Size(500, 0), TextFormatFlags.WordBreak).Width + (2 * LEFT_RIGHT_PADDING) + _actionButton.Width + 48);
             Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 6, 6));
-
         }
 
-        private void duration_Tick(object sender, EventArgs e)
+        private void Duration_Tick(object sender, EventArgs e)
         {
             _duration.Stop();
             _closingAnimationDone = false;
+            CleanupResources();
             Close();
         }
 
@@ -238,7 +240,6 @@
         {
             base.OnResize(e);
             UpdateRects();
-
         }
 
         /// <summary>
@@ -248,18 +249,18 @@
         {
             base.OnLoad(e);
             Location = new Point(Convert.ToInt32(Owner.Location.X + (Owner.Width / 2) - (Width / 2)), Convert.ToInt32(Owner.Location.Y + Owner.Height - 60));
-            _AnimationManager.StartNewAnimation(AnimationDirection.In);
+            _animationManager.StartNewAnimation(AnimationDirection.In);
             _duration.Start();
         }
 
         /// <summary>
         /// Animates the Form slides
         /// </summary>
-        void _AnimationManager_OnAnimationProgress(object sender)
+        void _animationManager_OnAnimationProgress(object sender)
         {
             if (CloseAnimation)
             {
-                Opacity = _AnimationManager.GetProgress();
+                Opacity = _animationManager.GetProgress();
             }
         }
 
@@ -268,12 +269,10 @@
         /// </summary>
         protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
         {
-
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             e.Graphics.Clear(BackColor);
-
 
             // Calc text Rect
             Rectangle textRect = new Rectangle(
@@ -282,7 +281,7 @@
                 Width - (2 * LEFT_RIGHT_PADDING) - _actionButton.Width,
                 Height);
 
-            //Draw  Text
+            //Draw Text
             using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
             {
                 // Draw header text
@@ -294,7 +293,6 @@
                     textRect.Size,
                     NativeTextRenderer.TextAlignFlags.Left | NativeTextRenderer.TextAlignFlags.Middle);
             }
-
         }
 
         /// <summary>
@@ -306,9 +304,9 @@
             if (!_closingAnimationDone)
             {
                 CloseAnimation = true;
-                _AnimationManager.Increment = 0.06;
-                _AnimationManager.OnAnimationFinished += _AnimationManager_OnAnimationFinished;
-                _AnimationManager.StartNewAnimation(AnimationDirection.Out);
+                _animationManager.Increment = 0.06;
+                _animationManager.OnAnimationFinished += _animationManager_OnAnimationFinished;
+                _animationManager.StartNewAnimation(AnimationDirection.Out);
             }
             base.OnClosing(e);
         }
@@ -316,9 +314,10 @@
         /// <summary>
         /// Closes the Form after the pull out animation
         /// </summary>
-        void _AnimationManager_OnAnimationFinished(object sender)
+        void _animationManager_OnAnimationFinished(object sender)
         {
             _closingAnimationDone = true;
+            CleanupResources();
             Close();
         }
 
@@ -326,16 +325,26 @@
         {
             base.OnClick(e);
             _closingAnimationDone = false;
+            CleanupResources();
             Close();
         }
 
-        private void InitializeComponent()
+        /// <summary>
+        /// Cleans up resources and unsubscribes from events
+        /// </summary>
+        private void CleanupResources()
         {
-            this.SuspendLayout();
-            this.ClientSize = new System.Drawing.Size(344, 48);
-            this.Name = "SnackBar";
-            this.ResumeLayout(false);
+            _animationManager.OnAnimationFinished -= _animationManager_OnAnimationFinished;
+        }
 
+        /// <summary>
+        /// Forces the SnackBar to close immediately bypassing animations
+        /// </summary>
+        public void ForceClose()
+        {
+            _closingAnimationDone = true;
+            CleanupResources();
+            Close();
         }
 
         /// <summary>
@@ -364,7 +373,7 @@
             {
                 throw new Exception("Owner is null. Set Owner first.");
             }
+            base.Show();
         }
-
     }
 }
