@@ -6,87 +6,98 @@ namespace MaterialSkin
     public static class ColorHelper
     {
         /// <summary>
-        /// Tints the color by the given percent.
+        /// Rengi belirtilen yüzde oranında açar.
         /// </summary>
-        /// <param name="color">The color being tinted.</param>
-        /// <param name="percent">The percent to tint. Ex: 0.1 will make the color 10% lighter.</param>
-        /// <returns>The new tinted color.</returns>
+        /// <param name="color">Açılacak renk.</param>
+        /// <param name="percent">Açma yüzdesi. Örnek: 0.1 rengi %10 daha açık yapacaktır.</param>
+        /// <returns>Açılmış yeni renk.</returns>
         public static Color Lighten(this Color color, float percent)
         {
+            if (percent < 0)
+            {
+                throw new ArgumentOutOfRangeException("percent", "Yüzde değeri negatif olamaz.");
+            }
+
             var lighting = color.GetBrightness();
             lighting = lighting + lighting * percent;
+
             if (lighting > 1.0)
             {
-                lighting = 1;
+                lighting = 1.0f;
             }
             else if (lighting <= 0)
             {
                 lighting = 0.1f;
             }
-            var tintedColor = ColorHelper.FromHsl(color.A, color.GetHue(), color.GetSaturation(), lighting);
 
-            return tintedColor;
+            return FromHsl(color.A, color.GetHue(), color.GetSaturation(), lighting);
         }
 
         /// <summary>
-        /// Tints the color by the given percent.
+        /// Rengi belirtilen yüzde oranında koyulaştırır.
         /// </summary>
-        /// <param name="color">The color being tinted.</param>
-        /// <param name="percent">The percent to tint. Ex: 0.1 will make the color 10% darker.</param>
-        /// <returns>The new tinted color.</returns>
+        /// <param name="color">Koyulaştırılacak renk.</param>
+        /// <param name="percent">Koyulaştırma yüzdesi. Örnek: 0.1 rengi %10 daha koyu yapacaktır.</param>
+        /// <returns>Koyulaştırılmış yeni renk.</returns>
         public static Color Darken(this Color color, float percent)
         {
+            if (percent < 0)
+            {
+                throw new ArgumentOutOfRangeException("percent", "Yüzde değeri negatif olamaz.");
+            }
+
             var lighting = color.GetBrightness();
             lighting = lighting - lighting * percent;
+
             if (lighting > 1.0)
             {
-                lighting = 1;
+                lighting = 1.0f;
             }
             else if (lighting <= 0)
             {
-                lighting = 0;
+                lighting = 0.0f;
             }
-            var tintedColor = ColorHelper.FromHsl(color.A, color.GetHue(), color.GetSaturation(), lighting);
 
-            return tintedColor;
+            return FromHsl(color.A, color.GetHue(), color.GetSaturation(), lighting);
         }
 
         /// <summary>
-        /// Converts the HSL values to a Color.
+        /// HSL değerlerini bir Color nesnesine dönüştürür.
         /// </summary>
-        /// <param name="alpha">The alpha.</param>
-        /// <param name="hue">The hue.</param>
-        /// <param name="saturation">The saturation.</param>
-        /// <param name="lighting">The lighting.</param>
-        /// <returns></returns>
+        /// <param name="alpha">Alfa değeri (şeffaflık).</param>
+        /// <param name="hue">Renk tonu (0-360).</param>
+        /// <param name="saturation">Doygunluk (0-1).</param>
+        /// <param name="lighting">Aydınlık (0-1).</param>
+        /// <returns>Oluşturulan renk.</returns>
         public static Color FromHsl(int alpha, float hue, float saturation, float lighting)
         {
-            if (0 > alpha || 255 < alpha)
+            if (alpha < 0 || alpha > 255)
             {
-                throw new ArgumentOutOfRangeException("alpha");
+                throw new ArgumentOutOfRangeException("alpha", "Alfa değeri 0-255 aralığında olmalıdır.");
             }
-            if (0f > hue || 360f < hue)
+            if (hue < 0f || hue > 360f)
             {
-                throw new ArgumentOutOfRangeException("hue");
+                throw new ArgumentOutOfRangeException("hue", "Renk tonu 0-360 aralığında olmalıdır.");
             }
-            if (0f > saturation || 1f < saturation)
+            if (saturation < 0f || saturation > 1f)
             {
-                throw new ArgumentOutOfRangeException("saturation");
+                throw new ArgumentOutOfRangeException("saturation", "Doygunluk 0-1 aralığında olmalıdır.");
             }
-            if (0f > lighting || 1f < lighting)
+            if (lighting < 0f || lighting > 1f)
             {
-                throw new ArgumentOutOfRangeException("lighting");
+                throw new ArgumentOutOfRangeException("lighting", "Aydınlık 0-1 aralığında olmalıdır.");
             }
 
-            if (0 == saturation)
+            if (saturation == 0)
             {
-                return Color.FromArgb(alpha, Convert.ToInt32(lighting * 255), Convert.ToInt32(lighting * 255), Convert.ToInt32(lighting * 255));
+                int value = Convert.ToInt32(lighting * 255);
+                return Color.FromArgb(alpha, value, value, value);
             }
 
             float fMax, fMid, fMin;
             int iSextant, iMax, iMid, iMin;
 
-            if (0.5 < lighting)
+            if (lighting > 0.5)
             {
                 fMax = lighting - (lighting * saturation) + saturation;
                 fMin = lighting + (lighting * saturation) - saturation;
@@ -98,13 +109,13 @@ namespace MaterialSkin
             }
 
             iSextant = (int)Math.Floor(hue / 60f);
-            if (300f <= hue)
+            if (hue >= 300f)
             {
                 hue -= 360f;
             }
             hue /= 60f;
             hue -= 2f * (float)Math.Floor(((iSextant + 1f) % 6f) / 2f);
-            if (0 == iSextant % 2)
+            if (iSextant % 2 == 0)
             {
                 fMid = hue * (fMax - fMin) + fMin;
             }
@@ -117,34 +128,34 @@ namespace MaterialSkin
             iMid = Convert.ToInt32(fMid * 255);
             iMin = Convert.ToInt32(fMin * 255);
 
+            // Değerlerin 0-255 aralığında olduğundan emin olalım
+            iMax = Math.Max(0, Math.Min(255, iMax));
+            iMid = Math.Max(0, Math.Min(255, iMid));
+            iMin = Math.Max(0, Math.Min(255, iMin));
+
             switch (iSextant)
             {
                 case 1:
                     return Color.FromArgb(alpha, iMid, iMax, iMin);
-
                 case 2:
                     return Color.FromArgb(alpha, iMin, iMax, iMid);
-
                 case 3:
                     return Color.FromArgb(alpha, iMin, iMid, iMax);
-
                 case 4:
                     return Color.FromArgb(alpha, iMid, iMin, iMax);
-
                 case 5:
                     return Color.FromArgb(alpha, iMax, iMin, iMid);
-
                 default:
                     return Color.FromArgb(alpha, iMax, iMid, iMin);
             }
         }
 
         /// <summary>
-        /// Removes alpha value without changing Color.
+        /// Alfa değerini kaldırarak renkten saydam olmayan bir renk oluşturur.
         /// </summary>
-        /// <param name="foreground">The foreground color.</param>
-        /// <param name="background">The background color.</param>
-        /// <returns></returns>
+        /// <param name="foreground">Ön plan rengi.</param>
+        /// <param name="background">Arka plan rengi.</param>
+        /// <returns>Saydam olmayan birleştirilmiş renk.</returns>
         public static Color RemoveAlpha(Color foreground, Color background)
         {
             if (foreground.A == 255)
@@ -157,6 +168,5 @@ namespace MaterialSkin
                 (byte)(foreground.G * alpha + background.G * diff),
                 (byte)(foreground.B * alpha + background.B * diff));
         }
-
     }
 }

@@ -17,21 +17,24 @@
         [Browsable(false)]
         public MouseState MouseState { get; set; }
 
+        private Control _oldParent;
+        private bool _shadowDrawEventSubscribed = false;
+
         public MaterialCard()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-            Paint += new PaintEventHandler(paintControl);
+            Paint += PaintControl;
             BackColor = SkinManager.BackgroundColor;
             ForeColor = SkinManager.TextHighEmphasisColor;
             Margin = new Padding(SkinManager.FORM_PADDING);
             Padding = new Padding(SkinManager.FORM_PADDING);
         }
 
-        private void drawShadowOnParent(object sender, PaintEventArgs e)
+        private void DrawShadowOnParent(object sender, PaintEventArgs e)
         {
             if (Parent == null)
             {
-                RemoveShadowPaintEvent((Control)sender, drawShadowOnParent);
+                RemoveShadowPaintEvent((Control)sender, DrawShadowOnParent);
                 return;
             }
 
@@ -44,6 +47,7 @@
 
         protected override void InitLayout()
         {
+            base.InitLayout(); // Base InitLayout çağrısı eklenmiştir
             LocationChanged += (sender, e) => { Parent?.Invalidate(); };
             ForeColor = SkinManager.TextHighEmphasisColor;
         }
@@ -51,24 +55,20 @@
         protected override void OnParentChanged(EventArgs e)
         {
             base.OnParentChanged(e);
-            if (Parent != null) AddShadowPaintEvent(Parent, drawShadowOnParent);
-            if (_oldParent != null) RemoveShadowPaintEvent(_oldParent, drawShadowOnParent);
+            if (Parent != null) AddShadowPaintEvent(Parent, DrawShadowOnParent);
+            if (_oldParent != null) RemoveShadowPaintEvent(_oldParent, DrawShadowOnParent);
             _oldParent = Parent;
         }
-
-        private Control _oldParent;
 
         protected override void OnVisibleChanged(EventArgs e)
         {
             base.OnVisibleChanged(e);
             if (Parent == null) return;
             if (Visible)
-                AddShadowPaintEvent(Parent, drawShadowOnParent);
+                AddShadowPaintEvent(Parent, DrawShadowOnParent);
             else
-                RemoveShadowPaintEvent(Parent, drawShadowOnParent);
+                RemoveShadowPaintEvent(Parent, DrawShadowOnParent);
         }
-
-        private bool _shadowDrawEventSubscribed = false;
 
         private void AddShadowPaintEvent(Control control, PaintEventHandler shadowPaintEvent)
         {
@@ -92,7 +92,7 @@
             BackColor = SkinManager.BackgroundColor;
         }
 
-        private void paintControl(Object sender, PaintEventArgs e)
+        private void PaintControl(Object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -113,6 +113,22 @@
             {
                 g.FillPath(normalBrush, cardPath);
             }
+
+            // GraphicsPath nesnesini dispose etme
+            cardPath.Dispose();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (Parent != null)
+                {
+                    RemoveShadowPaintEvent(Parent, DrawShadowOnParent);
+                }
+                Paint -= PaintControl;
+            }
+            base.Dispose(disposing);
         }
     }
 }

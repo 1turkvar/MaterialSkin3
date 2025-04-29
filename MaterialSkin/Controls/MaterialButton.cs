@@ -15,10 +15,9 @@
     /// </summary>
     public class MaterialButton : Button, IMaterialControl
     {
-
         private const int ICON_SIZE = 24;
         private const int MINIMUMWIDTH = 64;
-        private const int MINIMUMWIDTHICONONLY = 36; //64;
+        private const int MINIMUMWIDTHICONONLY = 36;
         private const int HEIGHTDEFAULT = 36;
         private const int HEIGHTDENSE = 32;
 
@@ -118,7 +117,7 @@
             Title
         }
 
-        public CharacterCasingEnum _cc;
+        private CharacterCasingEnum _cc;
         [Category("Behavior"), DefaultValue(CharacterCasingEnum.Upper), Description("Change capitalization of Text property")]
         public CharacterCasingEnum CharacterCasing
         {
@@ -129,6 +128,7 @@
                 Invalidate();
             }
         }
+
         protected override void InitLayout()
         {
             base.InitLayout();
@@ -180,9 +180,9 @@
             _shadowDrawEventSubscribed = false;
         }
 
-        private readonly AnimationManager _hoverAnimationManager = null;
-        private readonly AnimationManager _focusAnimationManager = null;
-        private readonly AnimationManager _animationManager = null;
+        private readonly AnimationManager _hoverAnimationManager;
+        private readonly AnimationManager _focusAnimationManager;
+        private readonly AnimationManager _animationManager;
 
         /// <summary>
         /// Defines the _textSize
@@ -256,6 +256,7 @@
                 Increment = 0.12,
                 AnimationType = AnimationType.Linear
             };
+
             SkinManager.ColorSchemeChanged += sender =>
             {
                 preProcessIcons();
@@ -356,55 +357,58 @@
                 newHeight = Icon.Height;
             }
 
-            Bitmap IconResized = new Bitmap(Icon, newWidth, newHeight);
-
-            // Calculate lightness and color
-            float l = (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT & (highEmphasis == false | Enabled == false | Type != MaterialButtonType.Contained)) ? 0f : 1.5f;
-
-            // Create matrices
-            float[][] matrixGray = {
-                    new float[] {   0,   0,   0,   0,  0}, // Red scale factor
-                    new float[] {   0,   0,   0,   0,  0}, // Green scale factor
-                    new float[] {   0,   0,   0,   0,  0}, // Blue scale factor
-                    new float[] {   0,   0,   0, Enabled ? .7f : .3f,  0}, // alpha scale factor
-                    new float[] {   l,   l,   l,   0,  1}};// offset
-
-
-            ColorMatrix colorMatrixGray = new ColorMatrix(matrixGray);
-
-            ImageAttributes grayImageAttributes = new ImageAttributes();
-
-            // Set color matrices
-            grayImageAttributes.SetColorMatrix(colorMatrixGray, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-
-            // Image Rect
-            Rectangle destRect = new Rectangle(0, 0, ICON_SIZE, ICON_SIZE);
-
-            // Create a pre-processed copy of the image (GRAY)
-            Bitmap bgray = new Bitmap(destRect.Width, destRect.Height);
-            using (Graphics gGray = Graphics.FromImage(bgray))
+            using (Bitmap IconResized = new Bitmap(Icon, newWidth, newHeight))
             {
-                gGray.DrawImage(IconResized,
-                    new Point[] {
-                                new Point(0, 0),
-                                new Point(destRect.Width, 0),
-                                new Point(0, destRect.Height),
-                    },
-                    destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                // Calculate lightness and color
+                float l = (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT && (highEmphasis == false || Enabled == false || Type != MaterialButtonType.Contained)) ? 0f : 1.5f;
+
+                // Create matrices
+                float[][] matrixGray = {
+                        new float[] {   0,   0,   0,   0,  0}, // Red scale factor
+                        new float[] {   0,   0,   0,   0,  0}, // Green scale factor
+                        new float[] {   0,   0,   0,   0,  0}, // Blue scale factor
+                        new float[] {   0,   0,   0, Enabled ? .7f : .3f,  0}, // alpha scale factor
+                        new float[] {   l,   l,   l,   0,  1}};// offset
+
+                ColorMatrix colorMatrixGray = new ColorMatrix(matrixGray);
+
+                using (ImageAttributes grayImageAttributes = new ImageAttributes())
+                {
+                    // Set color matrices
+                    grayImageAttributes.SetColorMatrix(colorMatrixGray, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                    // Image Rect
+                    Rectangle destRect = new Rectangle(0, 0, ICON_SIZE, ICON_SIZE);
+
+                    // Create a pre-processed copy of the image (GRAY)
+                    using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
+                    {
+                        using (Graphics gGray = Graphics.FromImage(bgray))
+                        {
+                            gGray.DrawImage(IconResized,
+                                new Point[] {
+                                            new Point(0, 0),
+                                            new Point(destRect.Width, 0),
+                                            new Point(0, destRect.Height),
+                                },
+                                destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                        }
+
+                        // added processed image to brush for drawing
+                        if (iconsBrushes != null)
+                        {
+                            iconsBrushes.Dispose();
+                        }
+                        iconsBrushes = new TextureBrush(bgray);
+                        iconsBrushes.WrapMode = WrapMode.Clamp;
+
+                        // Translate the brushes to the correct positions
+                        var iconRect = new Rectangle(8, (Height / 2 - ICON_SIZE / 2), ICON_SIZE, ICON_SIZE);
+                        iconsBrushes.TranslateTransform(iconRect.X + iconRect.Width / 2 - IconResized.Width / 2,
+                                                        iconRect.Y + iconRect.Height / 2 - IconResized.Height / 2);
+                    }
+                }
             }
-
-            // added processed image to brush for drawing
-            TextureBrush textureBrushGray = new TextureBrush(bgray);
-
-            textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
-
-            // Translate the brushes to the correct positions
-            var iconRect = new Rectangle(8, (Height / 2 - ICON_SIZE / 2), ICON_SIZE, ICON_SIZE);
-
-            textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - IconResized.Width / 2,
-                                                iconRect.Y + iconRect.Height / 2 - IconResized.Height / 2);
-
-            iconsBrushes = textureBrushGray;
         }
 
         /// <summary>
@@ -431,7 +435,10 @@
             using (GraphicsPath buttonPath = DrawHelper.CreateRoundRect(buttonRectF, 4))
             {
                 // Button gölgesini çiz
-                DrawHelper.DrawSquareShadow(g, ClientRectangle);
+                if (DrawShadows)
+                {
+                    DrawHelper.DrawSquareShadow(g, ClientRectangle);
+                }
 
                 // Button arkaplanını çiz
                 DrawButtonBackground(g, buttonPath);
@@ -596,11 +603,14 @@
 
         private void DrawButtonText(Graphics g)
         {
+            // Skip if text is empty
+            if (string.IsNullOrEmpty(Text))
+                return;
+
             // Text alanını hesapla
             var textRect = ClientRectangle;
             if (Icon != null)
             {
-                int ICON_SIZE = 24; // Sabit değeri tanımla
                 textRect.Width -= 8 + ICON_SIZE + 4 + 8;
                 textRect.X += 8 + ICON_SIZE + 4;
             }
@@ -611,7 +621,7 @@
             // Metni çiz
             using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
             {
-                string formattedText = FormatText(base.Text);
+                string formattedText = FormatText(Text);
                 NativeText.DrawMultilineTransparentText(
                     formattedText,
                     SkinManager.getLogFontByType(MaterialSkinManager.fontType.Button),
@@ -646,6 +656,9 @@
 
         private string FormatText(string text)
         {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
             switch (CharacterCasing)
             {
                 case CharacterCasingEnum.Upper:
@@ -661,7 +674,9 @@
 
         private void DrawButtonIcon(Graphics g)
         {
-            int ICON_SIZE = 24; // Sabit değeri tanımla
+            if (Icon == null || iconsBrushes == null)
+                return;
+
             var iconRect = new Rectangle(8, (Height / 2) - (ICON_SIZE / 2), ICON_SIZE, ICON_SIZE);
 
             if (string.IsNullOrEmpty(Text))
@@ -670,10 +685,7 @@
                 iconRect.X += 2;
             }
 
-            if (Icon != null)
-            {
-                g.FillRectangle(iconsBrushes, iconRect);
-            }
+            g.FillRectangle(iconsBrushes, iconRect);
         }
 
         /// <summary>
@@ -708,15 +720,18 @@
             {
                 s.Width = (int)Math.Ceiling(_textSize.Width);
                 s.Width += extra;
-                s.Height = HEIGHTDEFAULT;
+                s.Height = _density == MaterialButtonDensity.Dense ? HEIGHTDENSE : HEIGHTDEFAULT;
             }
             else
             {
                 s.Width += extra;
-                s.Height = HEIGHTDEFAULT;
+                s.Height = _density == MaterialButtonDensity.Dense ? HEIGHTDENSE : HEIGHTDEFAULT;
             }
-            if (Icon != null && Text.Length == 0 && s.Width < MINIMUMWIDTHICONONLY) s.Width = MINIMUMWIDTHICONONLY;
-            else if (s.Width < MINIMUMWIDTH) s.Width = MINIMUMWIDTH;
+
+            if (Icon != null && string.IsNullOrEmpty(Text) && s.Width < MINIMUMWIDTHICONONLY)
+                s.Width = MINIMUMWIDTHICONONLY;
+            else if (s.Width < MINIMUMWIDTH)
+                s.Width = MINIMUMWIDTH;
 
             return s;
         }
@@ -785,6 +800,21 @@
                     Invalidate();
                 }
             };
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources
+                if (iconsBrushes != null)
+                {
+                    iconsBrushes.Dispose();
+                    iconsBrushes = null;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

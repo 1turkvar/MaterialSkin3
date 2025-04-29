@@ -1,6 +1,7 @@
 ﻿namespace MaterialSkin.Controls
 {
     using MaterialSkin.Animations;
+    using System;
     using System.ComponentModel;
     using System.Drawing;
     using System.Drawing.Drawing2D;
@@ -20,9 +21,9 @@
         [Browsable(false)]
         public MouseState MouseState { get; set; }
 
-        internal AnimationManager AnimationManager;
+        internal AnimationManager AnimationManager { get; private set; }
 
-        internal Point AnimationSource;
+        internal Point AnimationSource { get; private set; }
 
         public delegate void ItemClickStart(object sender, ToolStripItemClickedEventArgs e);
 
@@ -38,7 +39,7 @@
                 AnimationType = AnimationType.Linear
             };
             AnimationManager.OnAnimationProgress += sender => Invalidate();
-            AnimationManager.OnAnimationFinished += sender => OnItemClicked(_delayesArgs);
+            AnimationManager.OnAnimationFinished += sender => OnItemClicked(_delayedArgs);
 
             BackColor = SkinManager.BackdropColor;
         }
@@ -50,29 +51,42 @@
             AnimationSource = mea.Location;
         }
 
-        private ToolStripItemClickedEventArgs _delayesArgs;
+        private ToolStripItemClickedEventArgs _delayedArgs;
 
         protected override void OnItemClicked(ToolStripItemClickedEventArgs e)
         {
             if (e.ClickedItem != null && !(e.ClickedItem is ToolStripSeparator))
             {
-                if (e == _delayesArgs)
+                if (e == _delayedArgs)
                 {
-                    //The event has been fired manualy because the args are the ones we saved for delay
+                    // The event has been fired manually because the args are the ones we saved for delay
                     base.OnItemClicked(e);
                 }
                 else
                 {
-                    //Interrupt the default on click, saving the args for the delay which is needed to display the animaton
-                    _delayesArgs = e;
+                    // Interrupt the default onClick, saving the args for the delay which is needed to display the animation
+                    _delayedArgs = e;
 
-                    //Fire custom event to trigger actions directly but keep cms open
+                    // Fire custom event to trigger actions directly but keep cms open
                     OnItemClickStart?.Invoke(this, e);
 
-                    //Start animation
+                    // Start animation
                     AnimationManager.StartNewAnimation(AnimationDirection.In);
                 }
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // AnimationManager'ı temizle (eğer IDisposable ise)
+                if (AnimationManager is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+            base.Dispose(disposing);
         }
     }
 
@@ -100,6 +114,7 @@
     {
         private const int LEFT_PADDING = 16;
         private const int RIGHT_PADDING = 8;
+        private const int ARROW_SIZE = 4;
 
         //Properties for managing the material design properties
         public int Depth { get; set; }
@@ -116,9 +131,9 @@
             var itemRect = GetItemRect(e.Item);
             var textRect = new Rectangle(LEFT_PADDING, itemRect.Y, itemRect.Width - (LEFT_PADDING + RIGHT_PADDING), itemRect.Height);
 
-            using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
+            using (var nativeText = new NativeTextRenderer(g))
             {
-                NativeText.DrawTransparentText(e.Text, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Body2),
+                nativeText.DrawTransparentText(e.Text, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Body2),
                     e.Item.Enabled ? SkinManager.TextHighEmphasisColor : SkinManager.TextDisabledOrHintColor,
                     textRect.Location,
                     textRect.Size,
@@ -131,24 +146,25 @@
             var g = e.Graphics;
             g.Clear(SkinManager.BackgroundColor);
 
-            //Draw background
+            // Draw background
             var itemRect = GetItemRect(e.Item);
             g.FillRectangle(e.Item.Selected && e.Item.Enabled ? SkinManager.BackgroundFocusBrush : SkinManager.BackgroundBrush, itemRect);
 
-            //Ripple animation
-            var toolStrip = e.ToolStrip as MaterialContextMenuStrip;
-            if (toolStrip != null)
+            // Ripple animation
+            if (e.ToolStrip is MaterialContextMenuStrip toolStrip)
             {
                 var animationManager = toolStrip.AnimationManager;
                 var animationSource = toolStrip.AnimationSource;
-                if (toolStrip.AnimationManager.IsAnimating() && e.Item.Bounds.Contains(animationSource))
+                if (animationManager.IsAnimating() && e.Item.Bounds.Contains(animationSource))
                 {
                     for (int i = 0; i < animationManager.GetAnimationCount(); i++)
                     {
                         var animationValue = animationManager.GetProgress(i);
-                        var rippleBrush = new SolidBrush(Color.FromArgb((int)(51 - (animationValue * 50)), Color.Black));
-                        var rippleSize = (int)(animationValue * itemRect.Width * 2.5);
-                        g.FillEllipse(rippleBrush, new Rectangle(animationSource.X - rippleSize / 2, itemRect.Y - itemRect.Height, rippleSize, itemRect.Height * 3));
+                        using (var rippleBrush = new SolidBrush(Color.FromArgb((int)(51 - (animationValue * 50)), Color.Black)))
+                        {
+                            var rippleSize = (int)(animationValue * itemRect.Width * 2.5);
+                            g.FillEllipse(rippleBrush, new Rectangle(animationSource.X - rippleSize / 2, itemRect.Y - itemRect.Height, rippleSize, itemRect.Height * 3));
+                        }
                     }
                 }
             }
@@ -156,6 +172,7 @@
 
         protected override void OnRenderImageMargin(ToolStripRenderEventArgs e)
         {
+            // Intentionally left empty to override default behavior
         }
 
         protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
@@ -163,10 +180,13 @@
             var g = e.Graphics;
 
             g.FillRectangle(SkinManager.BackgroundBrush, e.Item.Bounds);
-            g.DrawLine(
-                new Pen(SkinManager.DividersColor),
-                new Point(e.Item.Bounds.Left, e.Item.Bounds.Height / 2),
-                new Point(e.Item.Bounds.Right, e.Item.Bounds.Height / 2));
+            using (var separatorPen = new Pen(SkinManager.DividersColor))
+            {
+                g.DrawLine(
+                    separatorPen,
+                    new Point(e.Item.Bounds.Left, e.Item.Bounds.Height / 2),
+                    new Point(e.Item.Bounds.Right, e.Item.Bounds.Height / 2));
+            }
         }
 
         protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
@@ -177,7 +197,6 @@
         protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
         {
             var g = e.Graphics;
-            const int ARROW_SIZE = 4;
 
             var arrowMiddle = new Point(e.ArrowRectangle.X + e.ArrowRectangle.Width / 2, e.ArrowRectangle.Y + e.ArrowRectangle.Height / 2);
             var arrowBrush = e.Item.Enabled ? SkinManager.TextHighEmphasisBrush : SkinManager.TextDisabledOrHintBrush;
