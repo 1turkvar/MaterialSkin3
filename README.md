@@ -44,7 +44,7 @@ You can access it [here](https://github.com/leocb/MaterialSkin/wiki)
 | Chips                        |  **No**   |       -       |    -     |
 | Combobox                     |    Yes    |      Yes      |   Yes    |
 | Context Menu                 |    Yes    |      Yes      |   Yes    |
-| Date Picker                  |  **No**   |       -       |    -     |
+| Date Picker                  |  Yes   |       -       |    -     |
 | Dialog                       |    Yes    |      N/A      |  **No**  |
 | Divider                      |    Yes    |      N/A      |   N/A    |
 | Drawer                       |    Yes    |      N/A      |   Yes    |
@@ -71,7 +71,7 @@ All supported components have a dark theme
 - [ ] Progress bar - Animation and variants, maybe round loading thingy
 - [ ] Backdrop (maybe)
 - [ ] Some Color code improvements and refactoring
-- [ ] DatePicker
+- [ + ] DatePicker
 - [ ] Drawer - Header, Divider, subtitle & submenu
 - [ ] Textfield ContextualMenu translation
 - [ ] Controls code cleanup
