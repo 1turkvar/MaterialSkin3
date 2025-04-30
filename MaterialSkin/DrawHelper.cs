@@ -4,19 +4,19 @@
     using System.Drawing.Drawing2D;
 
     /// <summary>
-    /// Defines the <see cref="DrawHelper" />
+    /// Grafik çizim işlemleri için yardımcı araçlar sağlar.
     /// </summary>
     internal static class DrawHelper
     {
         /// <summary>
-        /// The CreateRoundRect
+        /// Belirtilen koordinat ve boyutlarda yuvarlak köşeli dikdörtgen oluşturur.
         /// </summary>
-        /// <param name="x">The x<see cref="float"/></param>
-        /// <param name="y">The y<see cref="float"/></param>
-        /// <param name="width">The width<see cref="float"/></param>
-        /// <param name="height">The height<see cref="float"/></param>
-        /// <param name="radius">The radius<see cref="float"/></param>
-        /// <returns>The <see cref="GraphicsPath"/></returns>
+        /// <param name="x">Sol üst köşenin X koordinatı</param>
+        /// <param name="y">Sol üst köşenin Y koordinatı</param>
+        /// <param name="width">Genişlik</param>
+        /// <param name="height">Yükseklik</param>
+        /// <param name="radius">Köşe yarıçapı</param>
+        /// <returns>Yuvarlak köşeli dikdörtgen şeklinde grafik yolu</returns>
         public static GraphicsPath CreateRoundRect(float x, float y, float width, float height, float radius)
         {
             var gp = new GraphicsPath();
@@ -29,34 +29,34 @@
         }
 
         /// <summary>
-        /// The CreateRoundRect
+        /// Belirtilen dikdörtgen ve yarıçap kullanarak yuvarlak köşeli bir dikdörtgen oluşturur.
         /// </summary>
-        /// <param name="rect">The rect<see cref="Rectangle"/></param>
-        /// <param name="radius">The radius<see cref="float"/></param>
-        /// <returns>The <see cref="GraphicsPath"/></returns>
+        /// <param name="rect">Dikdörtgen</param>
+        /// <param name="radius">Köşe yarıçapı</param>
+        /// <returns>Yuvarlak köşeli dikdörtgen şeklinde grafik yolu</returns>
         public static GraphicsPath CreateRoundRect(Rectangle rect, float radius)
         {
             return CreateRoundRect(rect.X, rect.Y, rect.Width, rect.Height, radius);
         }
 
         /// <summary>
-        /// The CreateRoundRect
+        /// Belirtilen kayan noktalı dikdörtgen ve yarıçap kullanarak yuvarlak köşeli bir dikdörtgen oluşturur.
         /// </summary>
-        /// <param name="rect">The rect<see cref="RectangleF"/></param>
-        /// <param name="radius">The radius<see cref="float"/></param>
-        /// <returns>The <see cref="GraphicsPath"/></returns>
+        /// <param name="rect">Kayan noktalı dikdörtgen</param>
+        /// <param name="radius">Köşe yarıçapı</param>
+        /// <returns>Yuvarlak köşeli dikdörtgen şeklinde grafik yolu</returns>
         public static GraphicsPath CreateRoundRect(RectangleF rect, float radius)
         {
             return CreateRoundRect(rect.X, rect.Y, rect.Width, rect.Height, radius);
         }
 
         /// <summary>
-        /// The BlendColor
+        /// İki rengi belirtilen oranda karıştırır.
         /// </summary>
-        /// <param name="backgroundColor">The backgroundColor<see cref="Color"/></param>
-        /// <param name="frontColor">The frontColor<see cref="Color"/></param>
-        /// <param name="blend">The blend<see cref="double"/></param>
-        /// <returns>The <see cref="Color"/></returns>
+        /// <param name="backgroundColor">Arka plan rengi</param>
+        /// <param name="frontColor">Ön plan rengi</param>
+        /// <param name="blend">Karıştırma oranı (0-255)</param>
+        /// <returns>Karıştırılmış renk</returns>
         public static Color BlendColor(Color backgroundColor, Color frontColor, double blend)
         {
             var ratio = blend / 255d;
@@ -68,44 +68,68 @@
         }
 
         /// <summary>
-        /// The BlendColor
+        /// İki rengi ön plan renginin alfa değerine göre karıştırır.
         /// </summary>
-        /// <param name="backgroundColor">The backgroundColor<see cref="Color"/></param>
-        /// <param name="frontColor">The frontColor<see cref="Color"/></param>
-        /// <returns>The <see cref="Color"/></returns>
+        /// <param name="backgroundColor">Arka plan rengi</param>
+        /// <param name="frontColor">Ön plan rengi</param>
+        /// <returns>Karıştırılmış renk</returns>
         public static Color BlendColor(Color backgroundColor, Color frontColor)
         {
             return BlendColor(backgroundColor, frontColor, frontColor.A);
         }
 
+        /// <summary>
+        /// Kare şeklinde bir gölge çizer.
+        /// </summary>
+        /// <param name="g">Grafik nesnesi</param>
+        /// <param name="bounds">Gölge sınırları</param>
         public static void DrawSquareShadow(Graphics g, Rectangle bounds)
         {
-            using (SolidBrush shadowBrush = new SolidBrush(Color.FromArgb(12, 0, 0, 0)))
+            using (var shadowBrush = new SolidBrush(Color.FromArgb(12, 0, 0, 0)))
             {
-                GraphicsPath path;
-                path = DrawHelper.CreateRoundRect(new RectangleF(bounds.X - 3.5f, bounds.Y - 1.5f, bounds.Width + 6, bounds.Height + 6), 8);
-                g.FillPath(shadowBrush, path);
-                path = DrawHelper.CreateRoundRect(new RectangleF(bounds.X - 2.5f, bounds.Y - 1.5f, bounds.Width + 4, bounds.Height + 4), 6);
-                g.FillPath(shadowBrush, path);
-                path = DrawHelper.CreateRoundRect(new RectangleF(bounds.X - 1.5f, bounds.Y - 0.5f, bounds.Width + 2, bounds.Height + 2), 4);
-                g.FillPath(shadowBrush, path);
-                path = DrawHelper.CreateRoundRect(new RectangleF(bounds.X - 0.5f, bounds.Y + 1.5f, bounds.Width + 0, bounds.Height + 0), 4);
-                g.FillPath(shadowBrush, path);
-                path = DrawHelper.CreateRoundRect(new RectangleF(bounds.X - 0.5f, bounds.Y + 2.5f, bounds.Width + 0, bounds.Height + 0), 4);
-                g.FillPath(shadowBrush, path);
-                path.Dispose();
+                RectangleF[] shadowRects = new RectangleF[]
+                {
+                    new RectangleF(bounds.X - 3.5f, bounds.Y - 1.5f, bounds.Width + 6, bounds.Height + 6),
+                    new RectangleF(bounds.X - 2.5f, bounds.Y - 1.5f, bounds.Width + 4, bounds.Height + 4),
+                    new RectangleF(bounds.X - 1.5f, bounds.Y - 0.5f, bounds.Width + 2, bounds.Height + 2),
+                    new RectangleF(bounds.X - 0.5f, bounds.Y + 1.5f, bounds.Width, bounds.Height),
+                    new RectangleF(bounds.X - 0.5f, bounds.Y + 2.5f, bounds.Width, bounds.Height)
+                };
+
+                float[] radiuses = new float[] { 8, 6, 4, 4, 4 };
+
+                for (int i = 0; i < shadowRects.Length; i++)
+                {
+                    using (var path = CreateRoundRect(shadowRects[i], radiuses[i]))
+                    {
+                        g.FillPath(shadowBrush, path);
+                    }
+                }
             }
         }
 
+        /// <summary>
+        /// Yuvarlak şeklinde bir gölge çizer.
+        /// </summary>
+        /// <param name="g">Grafik nesnesi</param>
+        /// <param name="bounds">Gölge sınırları</param>
         public static void DrawRoundShadow(Graphics g, Rectangle bounds)
         {
-            using (SolidBrush shadowBrush = new SolidBrush(Color.FromArgb(12, 0, 0, 0)))
+            using (var shadowBrush = new SolidBrush(Color.FromArgb(12, 0, 0, 0)))
             {
-                g.FillEllipse(shadowBrush, new Rectangle(bounds.X - 2, bounds.Y - 1, bounds.Width + 4, bounds.Height + 6));
-                g.FillEllipse(shadowBrush, new Rectangle(bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height + 4));
-                g.FillEllipse(shadowBrush, new Rectangle(bounds.X - 0, bounds.Y - 0, bounds.Width + 0, bounds.Height + 2));
-                g.FillEllipse(shadowBrush, new Rectangle(bounds.X - 0, bounds.Y + 2, bounds.Width + 0, bounds.Height + 0));
-                g.FillEllipse(shadowBrush, new Rectangle(bounds.X - 0, bounds.Y + 1, bounds.Width + 0, bounds.Height + 0));
+                Rectangle[] shadowEllipses = new Rectangle[]
+                {
+                    new Rectangle(bounds.X - 2, bounds.Y - 1, bounds.Width + 4, bounds.Height + 6),
+                    new Rectangle(bounds.X - 1, bounds.Y - 1, bounds.Width + 2, bounds.Height + 4),
+                    new Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height + 2),
+                    new Rectangle(bounds.X, bounds.Y + 2, bounds.Width, bounds.Height),
+                    new Rectangle(bounds.X, bounds.Y + 1, bounds.Width, bounds.Height)
+                };
+
+                foreach (var ellipse in shadowEllipses)
+                {
+                    g.FillEllipse(shadowBrush, ellipse);
+                }
             }
         }
     }

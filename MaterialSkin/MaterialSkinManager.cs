@@ -57,26 +57,26 @@
 
             // create and save font handles for GDI
             logicalFonts = new Dictionary<string, IntPtr>(18);
-            logicalFonts.Add("H1", createLogicalFont("Roboto Light", 96, NativeTextRenderer.logFontWeight.FW_LIGHT));
-            logicalFonts.Add("H2", createLogicalFont("Roboto Light", 60, NativeTextRenderer.logFontWeight.FW_LIGHT));
-            logicalFonts.Add("H3", createLogicalFont("Roboto", 48, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("H4", createLogicalFont("Roboto", 34, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("H5", createLogicalFont("Roboto", 24, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("H6", createLogicalFont("Roboto Medium", 20, NativeTextRenderer.logFontWeight.FW_MEDIUM));
-            logicalFonts.Add("Subtitle1", createLogicalFont("Roboto", 16, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("Subtitle2", createLogicalFont("Roboto Medium", 14, NativeTextRenderer.logFontWeight.FW_MEDIUM));
-            logicalFonts.Add("SubtleEmphasis", createLogicalFont("Roboto", 12, NativeTextRenderer.logFontWeight.FW_NORMAL, 1));
-            logicalFonts.Add("Body1", createLogicalFont("Roboto", 16, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("Body2", createLogicalFont("Roboto", 14, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("Button", createLogicalFont("Roboto Medium", 14, NativeTextRenderer.logFontWeight.FW_MEDIUM));
-            logicalFonts.Add("Caption", createLogicalFont("Roboto", 12, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("Overline", createLogicalFont("Roboto", 10, NativeTextRenderer.logFontWeight.FW_REGULAR));
+            logicalFonts.Add("H1", createLogicalFont("Roboto Light", 96, NativeTextRenderer.LogFontWeight.FW_LIGHT));
+            logicalFonts.Add("H2", createLogicalFont("Roboto Light", 60, NativeTextRenderer.LogFontWeight.FW_LIGHT));
+            logicalFonts.Add("H3", createLogicalFont("Roboto", 48, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("H4", createLogicalFont("Roboto", 34, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("H5", createLogicalFont("Roboto", 24, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("H6", createLogicalFont("Roboto Medium", 20, NativeTextRenderer.LogFontWeight.FW_MEDIUM));
+            logicalFonts.Add("Subtitle1", createLogicalFont("Roboto", 16, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("Subtitle2", createLogicalFont("Roboto Medium", 14, NativeTextRenderer.LogFontWeight.FW_MEDIUM));
+            logicalFonts.Add("SubtleEmphasis", createLogicalFont("Roboto", 12, NativeTextRenderer.LogFontWeight.FW_NORMAL, 1));
+            logicalFonts.Add("Body1", createLogicalFont("Roboto", 16, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("Body2", createLogicalFont("Roboto", 14, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("Button", createLogicalFont("Roboto Medium", 14, NativeTextRenderer.LogFontWeight.FW_MEDIUM));
+            logicalFonts.Add("Caption", createLogicalFont("Roboto", 12, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("Overline", createLogicalFont("Roboto", 10, NativeTextRenderer.LogFontWeight.FW_REGULAR));
             // Logical fonts for textbox animation
-            logicalFonts.Add("textBox16", createLogicalFont("Roboto", 16, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("textBox15", createLogicalFont("Roboto", 15, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("textBox14", createLogicalFont("Roboto", 14, NativeTextRenderer.logFontWeight.FW_REGULAR));
-            logicalFonts.Add("textBox13", createLogicalFont("Roboto Medium", 13, NativeTextRenderer.logFontWeight.FW_MEDIUM));
-            logicalFonts.Add("textBox12", createLogicalFont("Roboto Medium", 12, NativeTextRenderer.logFontWeight.FW_MEDIUM));
+            logicalFonts.Add("textBox16", createLogicalFont("Roboto", 16, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("textBox15", createLogicalFont("Roboto", 15, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("textBox14", createLogicalFont("Roboto", 14, NativeTextRenderer.LogFontWeight.FW_REGULAR));
+            logicalFonts.Add("textBox13", createLogicalFont("Roboto Medium", 13, NativeTextRenderer.LogFontWeight.FW_MEDIUM));
+            logicalFonts.Add("textBox12", createLogicalFont("Roboto Medium", 12, NativeTextRenderer.LogFontWeight.FW_MEDIUM));
         }
 
         // Destructor
@@ -384,7 +384,7 @@
             privateFontCollection.AddMemoryFont(ptrFont, dataLength);
         }
 
-        private IntPtr createLogicalFont(string fontName, int size, NativeTextRenderer.logFontWeight weight, byte lfItalic = 0)
+        private IntPtr createLogicalFont(string fontName, int size, NativeTextRenderer.LogFontWeight weight, byte lfItalic = 0)
         {
             // Logical font:
             NativeTextRenderer.LogFont lfont = new NativeTextRenderer.LogFont();

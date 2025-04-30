@@ -8,20 +8,18 @@ public sealed class NativeTextRenderer : IDisposable
     #region Fields and Consts
 
     private static readonly int[] _charFit = new int[1];
-
     private static readonly int[] _charFitWidth = new int[1000];
-
     private static readonly Dictionary<string, Dictionary<float, Dictionary<FontStyle, IntPtr>>> _fontsCache = new Dictionary<string, Dictionary<float, Dictionary<FontStyle, IntPtr>>>(StringComparer.InvariantCultureIgnoreCase);
 
     private readonly Graphics _g;
-
     private IntPtr _hdc;
+    private bool _disposed;
 
     #endregion Fields and Consts
 
     public NativeTextRenderer(Graphics g)
     {
-        _g = g;
+        _g = g ?? throw new ArgumentNullException(nameof(g));
 
         var clip = _g.Clip.GetHrgn(_g);
 
@@ -35,6 +33,7 @@ public sealed class NativeTextRenderer : IDisposable
 
     public Size MeasureString(string str, Font font)
     {
+        if (font == null) throw new ArgumentNullException(nameof(font));
         SetFont(font);
 
         var size = new Size();
@@ -45,6 +44,7 @@ public sealed class NativeTextRenderer : IDisposable
 
     public Size MeasureLogString(string str, IntPtr LogFont)
     {
+        if (LogFont == IntPtr.Zero) throw new ArgumentException("Invalid font handle", nameof(LogFont));
         SelectObject(_hdc, LogFont);
 
         var size = new Size();
@@ -55,6 +55,7 @@ public sealed class NativeTextRenderer : IDisposable
 
     public Size MeasureString(string str, Font font, float maxWidth, out int charFit, out int charFitWidth)
     {
+        if (font == null) throw new ArgumentNullException(nameof(font));
         SetFont(font);
 
         var size = new Size();
@@ -64,16 +65,22 @@ public sealed class NativeTextRenderer : IDisposable
         return size;
     }
 
-    public void DrawString(String str, Font font, Color color, Point point)
+    public void DrawString(string str, Font font, Color color, Point point)
     {
+        if (font == null) throw new ArgumentNullException(nameof(font));
+        if (string.IsNullOrEmpty(str)) return;
+
         SetFont(font);
         SetTextColor(color);
 
         TextOut(_hdc, point.X, point.Y, str, str.Length);
     }
 
-    public void DrawString(String str, Font font, Color color, Rectangle rect, TextFormatFlags flags)
+    public void DrawString(string str, Font font, Color color, Rectangle rect, TextFormatFlags flags)
     {
+        if (font == null) throw new ArgumentNullException(nameof(font));
+        if (string.IsNullOrEmpty(str)) return;
+
         SetFont(font);
         SetTextColor(color);
 
@@ -83,44 +90,62 @@ public sealed class NativeTextRenderer : IDisposable
 
     public void DrawTransparentText(string str, Font font, Color color, Point point, Size size, TextAlignFlags flags)
     {
+        if (font == null) throw new ArgumentNullException(nameof(font));
         DrawTransparentText(GetCachedHFont(font), str, color, point, size, flags, false);
     }
 
     public void DrawTransparentText(string str, IntPtr LogFont, Color color, Point point, Size size, TextAlignFlags flags)
     {
+        if (LogFont == IntPtr.Zero) throw new ArgumentException("Invalid font handle", nameof(LogFont));
         DrawTransparentText(LogFont, str, color, point, size, flags, false);
     }
 
     public void DrawMultilineTransparentText(string str, Font font, Color color, Point point, Size size, TextAlignFlags flags)
     {
+        if (font == null) throw new ArgumentNullException(nameof(font));
         DrawTransparentText(GetCachedHFont(font), str, color, point, size, flags, true);
     }
 
     public void DrawMultilineTransparentText(string str, IntPtr LogFont, Color color, Point point, Size size, TextAlignFlags flags)
     {
+        if (LogFont == IntPtr.Zero) throw new ArgumentException("Invalid font handle", nameof(LogFont));
         DrawTransparentText(LogFont, str, color, point, size, flags, true);
     }
 
     private void DrawTransparentText(IntPtr fontHandle, string str, Color color, Point point, Size size, TextAlignFlags flags, bool multilineSupport)
     {
+        if (string.IsNullOrEmpty(str)) return;
+        if (fontHandle == IntPtr.Zero) throw new ArgumentException("Invalid font handle", nameof(fontHandle));
+
         // Create a memory DC so we can work off-screen
         IntPtr memoryHdc = CreateCompatibleDC(_hdc);
+        if (memoryHdc == IntPtr.Zero)
+            throw new InvalidOperationException("Failed to create compatible DC");
+
         SetBkMode(memoryHdc, 1);
 
         // Create a device-independent bitmap and select it into our DC
-        var info = new BitMapInfo();
-        info.biSize = Marshal.SizeOf(info);
-        info.biWidth = size.Width;
-        info.biHeight = -size.Height;
-        info.biPlanes = 1;
-        info.biBitCount = 32;
-        info.biCompression = 0; // BI_RGB
+        var info = new BitMapInfo
+        {
+            biSize = Marshal.SizeOf<BitMapInfo>(),
+            biWidth = size.Width,
+            biHeight = -size.Height,
+            biPlanes = 1,
+            biBitCount = 32,
+            biCompression = 0 // BI_RGB
+        };
+
+        IntPtr dib = IntPtr.Zero;
         IntPtr ppvBits;
-        IntPtr dib = CreateDIBSection(_hdc, ref info, 0, out ppvBits, IntPtr.Zero, 0);
-        SelectObject(memoryHdc, dib);
 
         try
         {
+            dib = CreateDIBSection(_hdc, ref info, 0, out ppvBits, IntPtr.Zero, 0);
+            //if (dib == IntPtr.Zero)
+            //    throw new InvalidOperationException("Failed to create DIB section");
+
+            SelectObject(memoryHdc, dib);
+
             // copy target background to memory HDC so when copied back it will have the proper background
             BitBlt(memoryHdc, 0, 0, size.Width, size.Height, _hdc, point.X, point.Y, 0x00CC0020);
 
@@ -134,7 +159,7 @@ public sealed class NativeTextRenderer : IDisposable
             if (multilineSupport)
             {
                 TextFormatFlags fmtFlags = TextFormatFlags.WordBreak;
-                // Aligment
+                // Alignment
                 if (flags.HasFlag(TextAlignFlags.Center))
                     fmtFlags |= TextFormatFlags.Center;
                 if (flags.HasFlag(TextAlignFlags.Right))
@@ -142,31 +167,31 @@ public sealed class NativeTextRenderer : IDisposable
 
                 // Calculate the string size
                 Rect strRect = new Rect(new Rectangle(point, size));
-                DrawText(memoryHdc, str, str.Length, ref strRect, TextFormatFlags.CalcRect | fmtFlags);
+                DrawText(memoryHdc, str, str.Length, ref strRect, (uint)(TextFormatFlags.CalcRect | fmtFlags));
 
                 if (flags.HasFlag(TextAlignFlags.Middle))
-                    pos.Y = ((size.Height) >> 1) - (strRect.Height >> 1);
+                    pos.Y = (size.Height >> 1) - (strRect.Height >> 1);
                 if (flags.HasFlag(TextAlignFlags.Bottom))
-                    pos.Y = (size.Height) - (strRect.Height);
+                    pos.Y = size.Height - strRect.Height;
 
                 // Draw Text for multiline format
                 Rect region = new Rect(new Rectangle(pos, size));
-                DrawText(memoryHdc, str, -1, ref region, fmtFlags);
+                DrawText(memoryHdc, str, -1, ref region, (uint)fmtFlags);
             }
             else
             {
                 // Calculate the string size
                 GetTextExtentPoint32(memoryHdc, str, str.Length, ref strSize);
-                // Aligment
+                // Alignment
                 if (flags.HasFlag(TextAlignFlags.Center))
-                    pos.X = ((size.Width) >> 1) - (strSize.Width >> 1);
+                    pos.X = (size.Width >> 1) - (strSize.Width >> 1);
                 if (flags.HasFlag(TextAlignFlags.Right))
-                    pos.X = (size.Width) - (strSize.Width);
+                    pos.X = size.Width - strSize.Width;
 
                 if (flags.HasFlag(TextAlignFlags.Middle))
-                    pos.Y = ((size.Height) >> 1) - (strSize.Height >> 1);
+                    pos.Y = (size.Height >> 1) - (strSize.Height >> 1);
                 if (flags.HasFlag(TextAlignFlags.Bottom))
-                    pos.Y = (size.Height) - (strSize.Height);
+                    pos.Y = size.Height - strSize.Height;
 
                 // Draw text to memory HDC
                 TextOut(memoryHdc, pos.X, pos.Y, str, str.Length);
@@ -177,56 +202,66 @@ public sealed class NativeTextRenderer : IDisposable
         }
         finally
         {
-            DeleteObject(dib);
-            DeleteDC(memoryHdc);
+            if (dib != IntPtr.Zero)
+                DeleteObject(dib);
+
+            if (memoryHdc != IntPtr.Zero)
+                DeleteDC(memoryHdc);
         }
     }
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
         if (_hdc != IntPtr.Zero)
         {
             SelectClipRgn(_hdc, IntPtr.Zero);
             _g.ReleaseHdc(_hdc);
             _hdc = IntPtr.Zero;
         }
+
+        _disposed = true;
     }
 
     #region Private methods
 
     private void SetFont(Font font)
     {
-        SelectObject(_hdc, GetCachedHFont(font));
+        var hFont = GetCachedHFont(font);
+        SelectObject(_hdc, hFont);
     }
 
     private static IntPtr GetCachedHFont(Font font)
     {
-        IntPtr hfont = IntPtr.Zero;
-        Dictionary<float, Dictionary<FontStyle, IntPtr>> dic1;
-        if (_fontsCache.TryGetValue(font.Name, out dic1))
+        if (font == null) throw new ArgumentNullException(nameof(font));
+
+        if (!_fontsCache.TryGetValue(font.Name, out var sizeDict))
         {
-            Dictionary<FontStyle, IntPtr> dic2;
-            if (dic1.TryGetValue(font.Size, out dic2))
-            {
-                dic2.TryGetValue(font.Style, out hfont);
-            }
-            else
-            {
-                dic1[font.Size] = new Dictionary<FontStyle, IntPtr>();
-            }
-        }
-        else
-        {
-            _fontsCache[font.Name] = new Dictionary<float, Dictionary<FontStyle, IntPtr>>();
-            _fontsCache[font.Name][font.Size] = new Dictionary<FontStyle, IntPtr>();
+            sizeDict = new Dictionary<float, Dictionary<FontStyle, IntPtr>>();
+            _fontsCache[font.Name] = sizeDict;
         }
 
-        if (hfont == IntPtr.Zero)
+        if (!sizeDict.TryGetValue(font.Size, out var styleDict))
         {
-            _fontsCache[font.Name][font.Size][font.Style] = hfont = font.ToHfont();
+            styleDict = new Dictionary<FontStyle, IntPtr>();
+            sizeDict[font.Size] = styleDict;
         }
 
-        return hfont;
+        if (!styleDict.TryGetValue(font.Style, out var hFont) || hFont == IntPtr.Zero)
+        {
+            hFont = font.ToHfont();
+            styleDict[font.Style] = hFont;
+        }
+
+        return hFont;
     }
 
     private void SetTextColor(Color color)
@@ -290,6 +325,10 @@ public sealed class NativeTextRenderer : IDisposable
     [DllImport("gdi32.dll")]
     private static extern IntPtr CreateDIBSection(IntPtr hdc, [In] ref BitMapInfo pbmi, uint iUsage, out IntPtr ppvBits, IntPtr hSection, uint dwOffset);
 
+    #endregion Private methods
+
+    #region Structures and Enums
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public class LogFont
     {
@@ -311,9 +350,7 @@ public sealed class NativeTextRenderer : IDisposable
         public string lfFaceName = string.Empty;
     }
 
-    // ReSharper disable NotAccessedField.Local
-    // ReSharper disable MemberCanBePrivate.Local
-    // ReSharper disable FieldCanBeMadeReadOnly.Local
+    [StructLayout(LayoutKind.Sequential)]
     private struct Rect
     {
         private int _left;
@@ -329,13 +366,7 @@ public sealed class NativeTextRenderer : IDisposable
             _right = r.Right;
         }
 
-        public int Height
-        {
-            get
-            {
-                return _bottom - _top;
-            }
-        }
+        public int Height => _bottom - _top;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -400,56 +431,8 @@ public sealed class NativeTextRenderer : IDisposable
         WordEllipsis = 0x00040000,
         NoFullWidthCharBreak = 0x00080000,
         HidePrefix = 0x00100000,
-        ProfixOnly = 0x00200000,
+        PrefixOnly = 0x00200000,
     }
-
-    private const int DT_TOP = 0x00000000;
-
-    private const int DT_LEFT = 0x00000000;
-
-    private const int DT_CENTER = 0x00000001;
-
-    private const int DT_RIGHT = 0x00000002;
-
-    private const int DT_VCENTER = 0x00000004;
-
-    private const int DT_BOTTOM = 0x00000008;
-
-    private const int DT_WORDBREAK = 0x00000010;
-
-    private const int DT_SINGLELINE = 0x00000020;
-
-    private const int DT_EXPANDTABS = 0x00000040;
-
-    private const int DT_TABSTOP = 0x00000080;
-
-    private const int DT_NOCLIP = 0x00000100;
-
-    private const int DT_EXTERNALLEADING = 0x00000200;
-
-    private const int DT_CALCRECT = 0x00000400;
-
-    private const int DT_NOPREFIX = 0x00000800;
-
-    private const int DT_INTERNAL = 0x00001000;
-
-    private const int DT_EDITCONTROL = 0x00002000;
-
-    private const int DT_PATH_ELLIPSIS = 0x00004000;
-
-    private const int DT_END_ELLIPSIS = 0x00008000;
-
-    private const int DT_MODIFYSTRING = 0x00010000;
-
-    private const int DT_RTLREADING = 0x00020000;
-
-    private const int DT_WORD_ELLIPSIS = 0x00040000;
-
-    private const int DT_NOFULLWIDTHCHARBREAK = 0x00080000;
-
-    private const int DT_HIDEPREFIX = 0x00100000;
-
-    private const int DT_PREFIXONLY = 0x00200000;
 
     // Text Alignment Options
     [Flags]
@@ -463,7 +446,7 @@ public sealed class NativeTextRenderer : IDisposable
         Bottom = 1 << 5
     }
 
-    public enum logFontWeight : int
+    public enum LogFontWeight : int
     {
         FW_DONTCARE = 0,
         FW_THIN = 100,
@@ -482,5 +465,5 @@ public sealed class NativeTextRenderer : IDisposable
         FW_BLACK = 900,
     }
 
-    #endregion Private methods
+    #endregion Structures and Enums
 }
