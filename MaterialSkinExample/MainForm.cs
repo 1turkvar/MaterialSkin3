@@ -53,6 +53,7 @@ namespace MaterialSkinExample
 
             materialMaskedTextBox1.ValidatingType = typeof(System.Int16);
 
+
         }
 
         private void seedListView()
@@ -288,7 +289,9 @@ namespace MaterialSkinExample
             materialTextBox21.ShowAssistiveText = materialSwitch16.Checked;
         }
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
 
-
+        }
     }
 }

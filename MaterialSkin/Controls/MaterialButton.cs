@@ -88,7 +88,7 @@
         public MaterialButtonType Type
         {
             get { return type; }
-            set { type = value; preProcessIcons(); Invalidate(); }
+            set { type = value; PreProcessIcons(); Invalidate(); }
         }
 
         [Category("Material Skin")]
@@ -210,7 +210,7 @@
             set
             {
                 _icon = value;
-                preProcessIcons();
+                PreProcessIcons();
 
                 if (AutoSize)
                 {
@@ -259,12 +259,12 @@
 
             SkinManager.ColorSchemeChanged += sender =>
             {
-                preProcessIcons();
+                PreProcessIcons();
             };
 
             SkinManager.ThemeChanged += sender =>
             {
-                preProcessIcons();
+                PreProcessIcons();
             };
 
             _hoverAnimationManager.OnAnimationProgress += sender => Invalidate();
@@ -320,7 +320,7 @@
             DrawHelper.DrawSquareShadow(gp, rect);
         }
 
-        private void preProcessIcons()
+        private void PreProcessIcons()
         {
             if (Icon == null) return;
 
@@ -743,7 +743,7 @@
         {
             base.OnCreateControl();
             // before checking DesignMode property, as long as we need see Icon in proper position
-            Resize += (sender, args) => { preProcessIcons(); Invalidate(); };
+            Resize += (sender, args) => { PreProcessIcons(); Invalidate(); };
 
             if (DesignMode)
             {

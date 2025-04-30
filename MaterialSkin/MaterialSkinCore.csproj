@@ -31,6 +31,9 @@
       <Compile Update="Controls\BaseTextBox.cs">
         <SubType>Component</SubType>
       </Compile>
+      <Compile Update="Controls\MaterialDateTimePicker.cs">
+        <SubType>Component</SubType>
+      </Compile>
       <Compile Update="Controls\MaterialListBox.cs">
         <SubType>Component</SubType>
       </Compile>

@@ -1,4 +1,4 @@
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 using MaterialSkin;
 using MaterialSkin.Controls;
@@ -35,24 +35,24 @@ namespace MaterialSkinExample
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            MaterialSkin.MaterialListBoxItem materialListBoxItem1 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem2 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem3 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem4 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem5 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem6 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem7 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem8 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem9 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem10 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem11 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem12 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem13 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem14 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem15 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem16 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem17 = new MaterialSkin.MaterialListBoxItem();
-            MaterialSkin.MaterialListBoxItem materialListBoxItem18 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem109 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem110 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem111 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem112 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem113 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem114 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem115 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem116 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem117 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem118 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem119 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem120 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem121 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem122 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem123 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem124 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem125 = new MaterialSkin.MaterialListBoxItem();
+            MaterialSkin.MaterialListBoxItem materialListBoxItem126 = new MaterialSkin.MaterialListBoxItem();
             this.materialCheckbox3 = new MaterialSkin.Controls.MaterialCheckbox();
             this.materialCheckbox1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.materialTabControl1 = new MaterialSkin.Controls.MaterialTabControl();
@@ -222,6 +222,8 @@ namespace MaterialSkinExample
             this.item2ToolStripMenuItem = new MaterialSkin.Controls.MaterialToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.item3ToolStripMenuItem = new MaterialSkin.Controls.MaterialToolStripMenuItem();
+            this.materialDateTimePicker1 = new MaterialSkin.Controls.MaterialDateTimePicker();
+            this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
             this.materialTabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage7.SuspendLayout();
@@ -253,7 +255,6 @@ namespace MaterialSkinExample
             this.materialCheckbox3.MouseLocation = new System.Drawing.Point(-1, -1);
             this.materialCheckbox3.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialCheckbox3.Name = "materialCheckbox3";
-            this.materialCheckbox3.ReadOnly = false;
             this.materialCheckbox3.Ripple = true;
             this.materialCheckbox3.Size = new System.Drawing.Size(171, 37);
             this.materialCheckbox3.TabIndex = 2;
@@ -273,7 +274,6 @@ namespace MaterialSkinExample
             this.materialCheckbox1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.materialCheckbox1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialCheckbox1.Name = "materialCheckbox1";
-            this.materialCheckbox1.ReadOnly = false;
             this.materialCheckbox1.Ripple = true;
             this.materialCheckbox1.Size = new System.Drawing.Size(171, 37);
             this.materialCheckbox1.TabIndex = 1;
@@ -306,6 +306,8 @@ namespace MaterialSkinExample
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.White;
+            this.tabPage1.Controls.Add(this.dateTimePicker1);
+            this.tabPage1.Controls.Add(this.materialDateTimePicker1);
             this.tabPage1.Controls.Add(this.materialButton25);
             this.tabPage1.Controls.Add(this.materialButton6);
             this.tabPage1.Controls.Add(this.materialLabel57);
@@ -342,7 +344,7 @@ namespace MaterialSkinExample
             this.materialButton25.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton25.Name = "materialButton25";
             this.materialButton25.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialButton25.Size = new System.Drawing.Size(118, 36);
+            this.materialButton25.Size = new System.Drawing.Size(119, 36);
             this.materialButton25.TabIndex = 41;
             this.materialButton25.Text = "Show Dialog";
             this.materialButton25.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -362,7 +364,7 @@ namespace MaterialSkinExample
             this.materialButton6.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton6.Name = "materialButton6";
             this.materialButton6.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialButton6.Size = new System.Drawing.Size(142, 36);
+            this.materialButton6.Size = new System.Drawing.Size(144, 36);
             this.materialButton6.TabIndex = 41;
             this.materialButton6.Text = "Show SnackBar";
             this.materialButton6.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -437,7 +439,7 @@ namespace MaterialSkinExample
             this.MaterialButton3.MouseState = MaterialSkin.MouseState.HOVER;
             this.MaterialButton3.Name = "MaterialButton3";
             this.MaterialButton3.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.MaterialButton3.Size = new System.Drawing.Size(160, 36);
+            this.MaterialButton3.Size = new System.Drawing.Size(163, 36);
             this.MaterialButton3.TabIndex = 36;
             this.MaterialButton3.Text = "Open Message box";
             this.MaterialButton3.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -552,7 +554,7 @@ namespace MaterialSkinExample
             this.materialButton7.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton7.Name = "materialButton7";
             this.materialButton7.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialButton7.Size = new System.Drawing.Size(132, 36);
+            this.materialButton7.Size = new System.Drawing.Size(133, 36);
             this.materialButton7.TabIndex = 0;
             this.materialButton7.Text = "Change Theme";
             this.materialButton7.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
@@ -606,7 +608,7 @@ namespace MaterialSkinExample
             this.MaterialButton4.MouseState = MaterialSkin.MouseState.HOVER;
             this.MaterialButton4.Name = "MaterialButton4";
             this.MaterialButton4.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.MaterialButton4.Size = new System.Drawing.Size(138, 36);
+            this.MaterialButton4.Size = new System.Drawing.Size(140, 36);
             this.MaterialButton4.TabIndex = 22;
             this.MaterialButton4.Text = "Change Colors";
             this.MaterialButton4.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -1186,7 +1188,6 @@ namespace MaterialSkinExample
             this.materialComboBox6.MouseState = MaterialSkin.MouseState.OUT;
             this.materialComboBox6.Name = "materialComboBox6";
             this.materialComboBox6.Size = new System.Drawing.Size(190, 49);
-            this.materialComboBox6.StartIndex = 0;
             this.materialComboBox6.TabIndex = 74;
             // 
             // materialComboBox2
@@ -1212,7 +1213,6 @@ namespace MaterialSkinExample
             this.materialComboBox2.MouseState = MaterialSkin.MouseState.OUT;
             this.materialComboBox2.Name = "materialComboBox2";
             this.materialComboBox2.Size = new System.Drawing.Size(435, 49);
-            this.materialComboBox2.StartIndex = 0;
             this.materialComboBox2.TabIndex = 73;
             // 
             // materialComboBox5
@@ -1306,7 +1306,6 @@ namespace MaterialSkinExample
             this.materialComboBox5.MouseState = MaterialSkin.MouseState.OUT;
             this.materialComboBox5.Name = "materialComboBox5";
             this.materialComboBox5.Size = new System.Drawing.Size(190, 49);
-            this.materialComboBox5.StartIndex = 0;
             this.materialComboBox5.TabIndex = 72;
             // 
             // materialComboBox4
@@ -1401,7 +1400,6 @@ namespace MaterialSkinExample
             this.materialComboBox4.MouseState = MaterialSkin.MouseState.OUT;
             this.materialComboBox4.Name = "materialComboBox4";
             this.materialComboBox4.Size = new System.Drawing.Size(190, 49);
-            this.materialComboBox4.StartIndex = 0;
             this.materialComboBox4.TabIndex = 71;
             this.materialComboBox4.UseAccent = false;
             // 
@@ -1433,7 +1431,6 @@ namespace MaterialSkinExample
             this.materialComboBox3.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialComboBox3.Name = "materialComboBox3";
             this.materialComboBox3.Size = new System.Drawing.Size(190, 35);
-            this.materialComboBox3.StartIndex = 0;
             this.materialComboBox3.TabIndex = 70;
             this.materialComboBox3.UseTallSize = false;
             // 
@@ -1493,7 +1490,6 @@ namespace MaterialSkinExample
             this.materialComboBox1.MouseState = MaterialSkin.MouseState.OUT;
             this.materialComboBox1.Name = "materialComboBox1";
             this.materialComboBox1.Size = new System.Drawing.Size(190, 49);
-            this.materialComboBox1.StartIndex = 0;
             this.materialComboBox1.TabIndex = 17;
             // 
             // materialLabel34
@@ -1719,7 +1715,6 @@ namespace MaterialSkinExample
             this.materialCheckBox6.MouseLocation = new System.Drawing.Point(-1, -1);
             this.materialCheckBox6.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialCheckBox6.Name = "materialCheckBox6";
-            this.materialCheckBox6.ReadOnly = false;
             this.materialCheckBox6.Ripple = true;
             this.materialCheckBox6.Size = new System.Drawing.Size(172, 37);
             this.materialCheckBox6.TabIndex = 5;
@@ -1740,7 +1735,6 @@ namespace MaterialSkinExample
             this.materialCheckBox5.MouseLocation = new System.Drawing.Point(-1, -1);
             this.materialCheckBox5.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialCheckBox5.Name = "materialCheckBox5";
-            this.materialCheckBox5.ReadOnly = false;
             this.materialCheckBox5.Ripple = true;
             this.materialCheckBox5.Size = new System.Drawing.Size(172, 37);
             this.materialCheckBox5.TabIndex = 4;
@@ -1911,7 +1905,6 @@ namespace MaterialSkinExample
             this.materialComboBox7.MouseState = MaterialSkin.MouseState.OUT;
             this.materialComboBox7.Name = "materialComboBox7";
             this.materialComboBox7.Size = new System.Drawing.Size(183, 49);
-            this.materialComboBox7.StartIndex = 0;
             this.materialComboBox7.TabIndex = 75;
             this.materialComboBox7.SelectionChangeCommitted += new System.EventHandler(this.materialComboBox7_SelectionChangeCommitted);
             // 
@@ -1970,6 +1963,8 @@ namespace MaterialSkinExample
             // materialTextBox21
             // 
             this.materialTextBox21.AnimateReadOnly = false;
+            this.materialTextBox21.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialTextBox21.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
             this.materialTextBox21.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.materialTextBox21.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialTextBox21.Depth = 0;
@@ -2030,58 +2025,101 @@ namespace MaterialSkinExample
             // materialTextBox5
             // 
             this.materialTextBox5.AnimateReadOnly = false;
+            this.materialTextBox5.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialTextBox5.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
+            this.materialTextBox5.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialTextBox5.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialTextBox5.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.materialTextBox5.Depth = 0;
             this.materialTextBox5.Enabled = false;
             this.materialTextBox5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
-            this.materialTextBox5.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialTextBox5.HideSelection = true;
             this.materialTextBox5.Hint = "This is Disabled";
             this.materialTextBox5.LeadingIcon = null;
             this.materialTextBox5.Location = new System.Drawing.Point(222, 170);
             this.materialTextBox5.MaxLength = 50;
             this.materialTextBox5.MouseState = MaterialSkin.MouseState.OUT;
             this.materialTextBox5.Name = "materialTextBox5";
-            this.materialTextBox5.Size = new System.Drawing.Size(209, 50);
+            this.materialTextBox5.PasswordChar = '\0';
+            this.materialTextBox5.PrefixSuffixText = null;
+            this.materialTextBox5.ReadOnly = false;
+            this.materialTextBox5.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialTextBox5.SelectedText = "";
+            this.materialTextBox5.SelectionLength = 0;
+            this.materialTextBox5.SelectionStart = 0;
+            this.materialTextBox5.ShortcutsEnabled = true;
+            this.materialTextBox5.Size = new System.Drawing.Size(209, 48);
             this.materialTextBox5.TabIndex = 69;
+            this.materialTextBox5.TabStop = false;
             this.materialTextBox5.Text = "But with value";
+            this.materialTextBox5.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.materialTextBox5.TrailingIcon = null;
+            this.materialTextBox5.UseSystemPasswordChar = false;
             // 
             // materialTextBox4
             // 
             this.materialTextBox4.AnimateReadOnly = false;
+            this.materialTextBox4.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialTextBox4.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
+            this.materialTextBox4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialTextBox4.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialTextBox4.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.materialTextBox4.Depth = 0;
             this.materialTextBox4.Enabled = false;
-            this.materialTextBox4.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialTextBox4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialTextBox4.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialTextBox4.HideSelection = true;
             this.materialTextBox4.Hint = "This is Disabled";
             this.materialTextBox4.LeadingIcon = null;
             this.materialTextBox4.Location = new System.Drawing.Point(25, 170);
             this.materialTextBox4.MaxLength = 50;
             this.materialTextBox4.MouseState = MaterialSkin.MouseState.OUT;
             this.materialTextBox4.Name = "materialTextBox4";
-            this.materialTextBox4.Size = new System.Drawing.Size(191, 50);
+            this.materialTextBox4.PasswordChar = '\0';
+            this.materialTextBox4.PrefixSuffixText = null;
+            this.materialTextBox4.ReadOnly = false;
+            this.materialTextBox4.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialTextBox4.SelectedText = "";
+            this.materialTextBox4.SelectionLength = 0;
+            this.materialTextBox4.SelectionStart = 0;
+            this.materialTextBox4.ShortcutsEnabled = true;
+            this.materialTextBox4.Size = new System.Drawing.Size(191, 48);
             this.materialTextBox4.TabIndex = 68;
-            this.materialTextBox4.Text = "";
+            this.materialTextBox4.TabStop = false;
+            this.materialTextBox4.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.materialTextBox4.TrailingIcon = null;
+            this.materialTextBox4.UseSystemPasswordChar = false;
             // 
             // materialTextBox3
             // 
             this.materialTextBox3.AnimateReadOnly = false;
+            this.materialTextBox3.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialTextBox3.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
+            this.materialTextBox3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialTextBox3.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialTextBox3.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.materialTextBox3.Depth = 0;
-            this.materialTextBox3.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialTextBox3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialTextBox3.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialTextBox3.HideSelection = true;
             this.materialTextBox3.Hint = "This field has UseTallSize = false";
             this.materialTextBox3.LeadingIcon = null;
             this.materialTextBox3.Location = new System.Drawing.Point(25, 338);
             this.materialTextBox3.MaxLength = 50;
             this.materialTextBox3.MouseState = MaterialSkin.MouseState.OUT;
             this.materialTextBox3.Name = "materialTextBox3";
+            this.materialTextBox3.PasswordChar = '\0';
+            this.materialTextBox3.PrefixSuffixText = null;
+            this.materialTextBox3.ReadOnly = false;
+            this.materialTextBox3.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialTextBox3.SelectedText = "";
+            this.materialTextBox3.SelectionLength = 0;
+            this.materialTextBox3.SelectionStart = 0;
+            this.materialTextBox3.ShortcutsEnabled = true;
             this.materialTextBox3.Size = new System.Drawing.Size(406, 36);
             this.materialTextBox3.TabIndex = 67;
-            this.materialTextBox3.Text = "";
+            this.materialTextBox3.TabStop = false;
+            this.materialTextBox3.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.materialTextBox3.TrailingIcon = null;
+            this.materialTextBox3.UseSystemPasswordChar = false;
             this.materialTextBox3.UseTallSize = false;
             // 
             // materialLabel27
@@ -2126,57 +2164,98 @@ namespace MaterialSkinExample
             // materialTextBox2
             // 
             this.materialTextBox2.AnimateReadOnly = false;
+            this.materialTextBox2.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialTextBox2.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
+            this.materialTextBox2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialTextBox2.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialTextBox2.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.materialTextBox2.Depth = 0;
-            this.materialTextBox2.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialTextBox2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialTextBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialTextBox2.HideSelection = true;
             this.materialTextBox2.Hint = "Password";
             this.materialTextBox2.LeadingIcon = global::MaterialSkinExample.Properties.Resources.baseline_fingerprint_black_24dp;
             this.materialTextBox2.Location = new System.Drawing.Point(25, 282);
             this.materialTextBox2.MaxLength = 50;
             this.materialTextBox2.MouseState = MaterialSkin.MouseState.OUT;
             this.materialTextBox2.Name = "materialTextBox2";
-            this.materialTextBox2.UseSystemPasswordChar = true;
-            this.materialTextBox2.Size = new System.Drawing.Size(406, 50);
+            this.materialTextBox2.PasswordChar = '●';
+            this.materialTextBox2.PrefixSuffixText = null;
+            this.materialTextBox2.ReadOnly = false;
+            this.materialTextBox2.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialTextBox2.SelectedText = "";
+            this.materialTextBox2.SelectionLength = 0;
+            this.materialTextBox2.SelectionStart = 0;
+            this.materialTextBox2.ShortcutsEnabled = true;
+            this.materialTextBox2.Size = new System.Drawing.Size(406, 48);
             this.materialTextBox2.TabIndex = 3;
-            this.materialTextBox2.Text = "";
+            this.materialTextBox2.TabStop = false;
+            this.materialTextBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.materialTextBox2.TrailingIcon = null;
+            this.materialTextBox2.UseSystemPasswordChar = true;
             this.materialTextBox2.LeadingIconClick += new System.EventHandler(this.materialTextBox2_LeadingIconClick);
             // 
             // materialTextBox1
             // 
             this.materialTextBox1.AnimateReadOnly = false;
+            this.materialTextBox1.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialTextBox1.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
+            this.materialTextBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialTextBox1.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialTextBox1.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.materialTextBox1.Depth = 0;
-            this.materialTextBox1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialTextBox1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialTextBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialTextBox1.HideSelection = true;
             this.materialTextBox1.LeadingIcon = null;
             this.materialTextBox1.Location = new System.Drawing.Point(25, 114);
             this.materialTextBox1.MaxLength = 50;
             this.materialTextBox1.MouseState = MaterialSkin.MouseState.OUT;
             this.materialTextBox1.Name = "materialTextBox1";
-            this.materialTextBox1.Size = new System.Drawing.Size(406, 50);
+            this.materialTextBox1.PasswordChar = '\0';
+            this.materialTextBox1.PrefixSuffixText = null;
+            this.materialTextBox1.ReadOnly = false;
+            this.materialTextBox1.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialTextBox1.SelectedText = "";
+            this.materialTextBox1.SelectionLength = 0;
+            this.materialTextBox1.SelectionStart = 0;
+            this.materialTextBox1.ShortcutsEnabled = true;
+            this.materialTextBox1.Size = new System.Drawing.Size(406, 48);
             this.materialTextBox1.TabIndex = 1;
-            this.materialTextBox1.Text = "";
+            this.materialTextBox1.TabStop = false;
+            this.materialTextBox1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.materialTextBox1.TrailingIcon = global::MaterialSkinExample.Properties.Resources.baseline_favorite_border_black_24dp;
+            this.materialTextBox1.UseSystemPasswordChar = false;
             // 
             // materialSingleLineTextField2
             // 
             this.materialSingleLineTextField2.AnimateReadOnly = false;
+            this.materialSingleLineTextField2.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.None;
+            this.materialSingleLineTextField2.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.None;
+            this.materialSingleLineTextField2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.materialSingleLineTextField2.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.materialSingleLineTextField2.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.materialSingleLineTextField2.Depth = 0;
-            this.materialSingleLineTextField2.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialSingleLineTextField2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(180)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialSingleLineTextField2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialSingleLineTextField2.HideSelection = true;
             this.materialSingleLineTextField2.Hint = "Type here";
             this.materialSingleLineTextField2.LeadingIcon = null;
             this.materialSingleLineTextField2.Location = new System.Drawing.Point(25, 226);
             this.materialSingleLineTextField2.MaxLength = 50;
             this.materialSingleLineTextField2.MouseState = MaterialSkin.MouseState.OUT;
             this.materialSingleLineTextField2.Name = "materialSingleLineTextField2";
-            this.materialSingleLineTextField2.Size = new System.Drawing.Size(406, 50);
+            this.materialSingleLineTextField2.PasswordChar = '\0';
+            this.materialSingleLineTextField2.PrefixSuffixText = null;
+            this.materialSingleLineTextField2.ReadOnly = false;
+            this.materialSingleLineTextField2.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.materialSingleLineTextField2.SelectedText = "";
+            this.materialSingleLineTextField2.SelectionLength = 0;
+            this.materialSingleLineTextField2.SelectionStart = 0;
+            this.materialSingleLineTextField2.ShortcutsEnabled = true;
+            this.materialSingleLineTextField2.Size = new System.Drawing.Size(406, 48);
             this.materialSingleLineTextField2.TabIndex = 2;
-            this.materialSingleLineTextField2.Text = "";
+            this.materialSingleLineTextField2.TabStop = false;
+            this.materialSingleLineTextField2.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.materialSingleLineTextField2.TrailingIcon = null;
+            this.materialSingleLineTextField2.UseSystemPasswordChar = false;
             // 
             // tabPage4
             // 
@@ -2321,7 +2400,7 @@ namespace MaterialSkinExample
             this.materialFlatButton2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialFlatButton2.Name = "materialFlatButton2";
             this.materialFlatButton2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialFlatButton2.Size = new System.Drawing.Size(107, 36);
+            this.materialFlatButton2.Size = new System.Drawing.Size(108, 36);
             this.materialFlatButton2.TabIndex = 1;
             this.materialFlatButton2.Text = "Remove";
             this.materialFlatButton2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
@@ -2714,30 +2793,30 @@ namespace MaterialSkinExample
             this.materialListBox3.BorderColor = System.Drawing.Color.LightGray;
             this.materialListBox3.Depth = 0;
             this.materialListBox3.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            materialListBoxItem1.SecondaryText = "A very very long secondary text to display 1 ";
-            materialListBoxItem1.Tag = null;
-            materialListBoxItem1.Text = "ListBoxItem1";
-            materialListBoxItem2.SecondaryText = "A very very long secondary text to display 2";
-            materialListBoxItem2.Tag = null;
-            materialListBoxItem2.Text = "ListBoxItem2";
-            materialListBoxItem3.SecondaryText = "A very very long secondary text to display 3";
-            materialListBoxItem3.Tag = null;
-            materialListBoxItem3.Text = "ListBoxItem3";
-            materialListBoxItem4.SecondaryText = "A very very long secondary text to display 4";
-            materialListBoxItem4.Tag = null;
-            materialListBoxItem4.Text = "ListBoxItem4";
-            materialListBoxItem5.SecondaryText = "A very very long secondary text to display 5";
-            materialListBoxItem5.Tag = null;
-            materialListBoxItem5.Text = "ListBoxItem5";
-            materialListBoxItem6.SecondaryText = "A very very long secondary text to display 6";
-            materialListBoxItem6.Tag = null;
-            materialListBoxItem6.Text = "ListBoxItem6";
-            this.materialListBox3.Items.Add(materialListBoxItem1);
-            this.materialListBox3.Items.Add(materialListBoxItem2);
-            this.materialListBox3.Items.Add(materialListBoxItem3);
-            this.materialListBox3.Items.Add(materialListBoxItem4);
-            this.materialListBox3.Items.Add(materialListBoxItem5);
-            this.materialListBox3.Items.Add(materialListBoxItem6);
+            materialListBoxItem109.SecondaryText = "A very very long secondary text to display 1 ";
+            materialListBoxItem109.Tag = null;
+            materialListBoxItem109.Text = "ListBoxItem1";
+            materialListBoxItem110.SecondaryText = "A very very long secondary text to display 2";
+            materialListBoxItem110.Tag = null;
+            materialListBoxItem110.Text = "ListBoxItem2";
+            materialListBoxItem111.SecondaryText = "A very very long secondary text to display 3";
+            materialListBoxItem111.Tag = null;
+            materialListBoxItem111.Text = "ListBoxItem3";
+            materialListBoxItem112.SecondaryText = "A very very long secondary text to display 4";
+            materialListBoxItem112.Tag = null;
+            materialListBoxItem112.Text = "ListBoxItem4";
+            materialListBoxItem113.SecondaryText = "A very very long secondary text to display 5";
+            materialListBoxItem113.Tag = null;
+            materialListBoxItem113.Text = "ListBoxItem5";
+            materialListBoxItem114.SecondaryText = "A very very long secondary text to display 6";
+            materialListBoxItem114.Tag = null;
+            materialListBoxItem114.Text = "ListBoxItem6";
+            this.materialListBox3.Items.Add(materialListBoxItem109);
+            this.materialListBox3.Items.Add(materialListBoxItem110);
+            this.materialListBox3.Items.Add(materialListBoxItem111);
+            this.materialListBox3.Items.Add(materialListBoxItem112);
+            this.materialListBox3.Items.Add(materialListBoxItem113);
+            this.materialListBox3.Items.Add(materialListBoxItem114);
             this.materialListBox3.Location = new System.Drawing.Point(579, 132);
             this.materialListBox3.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialListBox3.Name = "materialListBox3";
@@ -2753,30 +2832,30 @@ namespace MaterialSkinExample
             this.materialListBox2.BorderColor = System.Drawing.Color.LightGray;
             this.materialListBox2.Depth = 0;
             this.materialListBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            materialListBoxItem7.SecondaryText = "Secondary text1";
-            materialListBoxItem7.Tag = null;
-            materialListBoxItem7.Text = "ListBoxItem1";
-            materialListBoxItem8.SecondaryText = "Secondary text2";
-            materialListBoxItem8.Tag = null;
-            materialListBoxItem8.Text = "ListBoxItem2";
-            materialListBoxItem9.SecondaryText = "Secondary text3";
-            materialListBoxItem9.Tag = null;
-            materialListBoxItem9.Text = "ListBoxItem3";
-            materialListBoxItem10.SecondaryText = "Secondary text4";
-            materialListBoxItem10.Tag = null;
-            materialListBoxItem10.Text = "ListBoxItem4";
-            materialListBoxItem11.SecondaryText = "Secondary text5";
-            materialListBoxItem11.Tag = null;
-            materialListBoxItem11.Text = "ListBoxItem5";
-            materialListBoxItem12.SecondaryText = "Secondary text6";
-            materialListBoxItem12.Tag = null;
-            materialListBoxItem12.Text = "ListBoxItem6";
-            this.materialListBox2.Items.Add(materialListBoxItem7);
-            this.materialListBox2.Items.Add(materialListBoxItem8);
-            this.materialListBox2.Items.Add(materialListBoxItem9);
-            this.materialListBox2.Items.Add(materialListBoxItem10);
-            this.materialListBox2.Items.Add(materialListBoxItem11);
-            this.materialListBox2.Items.Add(materialListBoxItem12);
+            materialListBoxItem115.SecondaryText = "Secondary text1";
+            materialListBoxItem115.Tag = null;
+            materialListBoxItem115.Text = "ListBoxItem1";
+            materialListBoxItem116.SecondaryText = "Secondary text2";
+            materialListBoxItem116.Tag = null;
+            materialListBoxItem116.Text = "ListBoxItem2";
+            materialListBoxItem117.SecondaryText = "Secondary text3";
+            materialListBoxItem117.Tag = null;
+            materialListBoxItem117.Text = "ListBoxItem3";
+            materialListBoxItem118.SecondaryText = "Secondary text4";
+            materialListBoxItem118.Tag = null;
+            materialListBoxItem118.Text = "ListBoxItem4";
+            materialListBoxItem119.SecondaryText = "Secondary text5";
+            materialListBoxItem119.Tag = null;
+            materialListBoxItem119.Text = "ListBoxItem5";
+            materialListBoxItem120.SecondaryText = "Secondary text6";
+            materialListBoxItem120.Tag = null;
+            materialListBoxItem120.Text = "ListBoxItem6";
+            this.materialListBox2.Items.Add(materialListBoxItem115);
+            this.materialListBox2.Items.Add(materialListBoxItem116);
+            this.materialListBox2.Items.Add(materialListBoxItem117);
+            this.materialListBox2.Items.Add(materialListBoxItem118);
+            this.materialListBox2.Items.Add(materialListBoxItem119);
+            this.materialListBox2.Items.Add(materialListBoxItem120);
             this.materialListBox2.Location = new System.Drawing.Point(306, 132);
             this.materialListBox2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialListBox2.Name = "materialListBox2";
@@ -2793,30 +2872,30 @@ namespace MaterialSkinExample
             this.materialListBox1.BorderColor = System.Drawing.Color.LightGray;
             this.materialListBox1.Depth = 0;
             this.materialListBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            materialListBoxItem13.SecondaryText = "";
-            materialListBoxItem13.Tag = null;
-            materialListBoxItem13.Text = "ListBoxItem1";
-            materialListBoxItem14.SecondaryText = "";
-            materialListBoxItem14.Tag = null;
-            materialListBoxItem14.Text = "ListBoxItem2";
-            materialListBoxItem15.SecondaryText = "";
-            materialListBoxItem15.Tag = null;
-            materialListBoxItem15.Text = "ListBoxItem3";
-            materialListBoxItem16.SecondaryText = "";
-            materialListBoxItem16.Tag = null;
-            materialListBoxItem16.Text = "ListBoxItem4";
-            materialListBoxItem17.SecondaryText = "";
-            materialListBoxItem17.Tag = null;
-            materialListBoxItem17.Text = "ListBoxItem5";
-            materialListBoxItem18.SecondaryText = "";
-            materialListBoxItem18.Tag = null;
-            materialListBoxItem18.Text = "ListBoxItem6";
-            this.materialListBox1.Items.Add(materialListBoxItem13);
-            this.materialListBox1.Items.Add(materialListBoxItem14);
-            this.materialListBox1.Items.Add(materialListBoxItem15);
-            this.materialListBox1.Items.Add(materialListBoxItem16);
-            this.materialListBox1.Items.Add(materialListBoxItem17);
-            this.materialListBox1.Items.Add(materialListBoxItem18);
+            materialListBoxItem121.SecondaryText = "";
+            materialListBoxItem121.Tag = null;
+            materialListBoxItem121.Text = "ListBoxItem1";
+            materialListBoxItem122.SecondaryText = "";
+            materialListBoxItem122.Tag = null;
+            materialListBoxItem122.Text = "ListBoxItem2";
+            materialListBoxItem123.SecondaryText = "";
+            materialListBoxItem123.Tag = null;
+            materialListBoxItem123.Text = "ListBoxItem3";
+            materialListBoxItem124.SecondaryText = "";
+            materialListBoxItem124.Tag = null;
+            materialListBoxItem124.Text = "ListBoxItem4";
+            materialListBoxItem125.SecondaryText = "";
+            materialListBoxItem125.Tag = null;
+            materialListBoxItem125.Text = "ListBoxItem5";
+            materialListBoxItem126.SecondaryText = "";
+            materialListBoxItem126.Tag = null;
+            materialListBoxItem126.Text = "ListBoxItem6";
+            this.materialListBox1.Items.Add(materialListBoxItem121);
+            this.materialListBox1.Items.Add(materialListBoxItem122);
+            this.materialListBox1.Items.Add(materialListBoxItem123);
+            this.materialListBox1.Items.Add(materialListBoxItem124);
+            this.materialListBox1.Items.Add(materialListBoxItem125);
+            this.materialListBox1.Items.Add(materialListBoxItem126);
             this.materialListBox1.Location = new System.Drawing.Point(38, 132);
             this.materialListBox1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialListBox1.Name = "materialListBox1";
@@ -3285,6 +3364,27 @@ namespace MaterialSkinExample
             this.item3ToolStripMenuItem.Size = new System.Drawing.Size(170, 30);
             this.item3ToolStripMenuItem.Text = "Item 3";
             // 
+            // materialDateTimePicker1
+            // 
+            this.materialDateTimePicker1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.materialDateTimePicker1.Depth = 0;
+            this.materialDateTimePicker1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialDateTimePicker1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialDateTimePicker1.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.materialDateTimePicker1.Location = new System.Drawing.Point(369, 200);
+            this.materialDateTimePicker1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialDateTimePicker1.Name = "materialDateTimePicker1";
+            this.materialDateTimePicker1.Size = new System.Drawing.Size(200, 27);
+            this.materialDateTimePicker1.TabIndex = 42;
+            this.materialDateTimePicker1.UseAccentColor = false;
+            // 
+            // dateTimePicker1
+            // 
+            this.dateTimePicker1.Location = new System.Drawing.Point(369, 233);
+            this.dateTimePicker1.Name = "dateTimePicker1";
+            this.dateTimePicker1.Size = new System.Drawing.Size(200, 20);
+            this.dateTimePicker1.TabIndex = 43;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3299,6 +3399,7 @@ namespace MaterialSkinExample
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MaterialSkin Demo";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.materialTabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
@@ -3504,5 +3605,7 @@ namespace MaterialSkinExample
         private MaterialLabel materialLabel57;
         private MaterialSwitch materialSwitch16;
         private MaterialLabel materialLabel58;
+        private MaterialDateTimePicker materialDateTimePicker1;
+        private DateTimePicker dateTimePicker1;
     }
 }
