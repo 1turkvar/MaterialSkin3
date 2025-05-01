@@ -16,19 +16,20 @@
         [Browsable(false)]
         public MouseState MouseState { get; set; }
 
-        private ContentAlignment _TextAlign = ContentAlignment.TopLeft;
+        private ContentAlignment _textAlign = ContentAlignment.TopLeft;
+        private NativeTextRenderer.TextAlignFlags _alignment;
 
         [DefaultValue(typeof(ContentAlignment), "TopLeft")]
         public override ContentAlignment TextAlign
         {
             get
             {
-                return _TextAlign;
+                return _textAlign;
             }
             set
             {
-                _TextAlign = value;
-                updateAligment();
+                _textAlign = value;
+                UpdateAlignment();
                 Invalidate();
             }
         }
@@ -67,66 +68,62 @@
 
         public override Size GetPreferredSize(Size proposedSize)
         {
-            if (AutoSize)
-            {
-                Size strSize;
-                using (NativeTextRenderer NativeText = new NativeTextRenderer(CreateGraphics()))
-                {
-                    strSize = NativeText.MeasureLogString(Text, SkinManager.getLogFontByType(_fontType));
-                    strSize.Width += 1; // necessary to avoid a bug when autosize = true
-                }
-                return strSize;
-            }
-            else
+            if (!AutoSize)
             {
                 return proposedSize;
             }
+
+            using (NativeTextRenderer nativeText = new NativeTextRenderer(CreateGraphics()))
+            {
+                Size strSize = nativeText.MeasureLogString(Text, SkinManager.getLogFontByType(_fontType));
+                // Gerekli düzeltme için +1 piksel ekleme
+                strSize.Width += 1;
+                return strSize;
+            }
         }
 
-        private NativeTextRenderer.TextAlignFlags Alignment;
-
-        private void updateAligment()
+        private void UpdateAlignment()
         {
-            switch (_TextAlign)
+            switch (_textAlign)
             {
                 case ContentAlignment.TopLeft:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Left;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Left;
                     break;
 
                 case ContentAlignment.TopCenter:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Center;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Center;
                     break;
 
                 case ContentAlignment.TopRight:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Right;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Right;
                     break;
 
                 case ContentAlignment.MiddleLeft:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Middle | NativeTextRenderer.TextAlignFlags.Left;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Middle | NativeTextRenderer.TextAlignFlags.Left;
                     break;
 
                 case ContentAlignment.MiddleCenter:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Middle | NativeTextRenderer.TextAlignFlags.Center;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Middle | NativeTextRenderer.TextAlignFlags.Center;
                     break;
 
                 case ContentAlignment.MiddleRight:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Middle | NativeTextRenderer.TextAlignFlags.Right;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Middle | NativeTextRenderer.TextAlignFlags.Right;
                     break;
 
                 case ContentAlignment.BottomLeft:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Bottom | NativeTextRenderer.TextAlignFlags.Left;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Bottom | NativeTextRenderer.TextAlignFlags.Left;
                     break;
 
                 case ContentAlignment.BottomCenter:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Bottom | NativeTextRenderer.TextAlignFlags.Center;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Bottom | NativeTextRenderer.TextAlignFlags.Center;
                     break;
 
                 case ContentAlignment.BottomRight:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Bottom | NativeTextRenderer.TextAlignFlags.Right;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Bottom | NativeTextRenderer.TextAlignFlags.Right;
                     break;
 
                 default:
-                    Alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Left;
+                    _alignment = NativeTextRenderer.TextAlignFlags.Top | NativeTextRenderer.TextAlignFlags.Left;
                     break;
             }
         }
@@ -136,28 +133,52 @@
             Graphics g = e.Graphics;
             g.Clear(Parent.BackColor);
 
+            Color textColor = GetTextColor();
+
             // Draw Text
-            using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
+            using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
             {
-                NativeText.DrawMultilineTransparentText(
+                nativeText.DrawMultilineTransparentText(
                     Text,
                     SkinManager.getLogFontByType(_fontType),
-                    Enabled ? HighEmphasis ? UseAccent ?
-                    SkinManager.ColorScheme.AccentColor : // High emphasis, accent
-                    (SkinManager.Theme == MaterialSkin.MaterialSkinManager.Themes.LIGHT) ?
-                    SkinManager.ColorScheme.PrimaryColor : // High emphasis, primary Light theme
-                    SkinManager.ColorScheme.PrimaryColor.Lighten(0.25f) : // High emphasis, primary Dark theme
-                    SkinManager.TextHighEmphasisColor : // Normal
-                    SkinManager.TextDisabledOrHintColor, // Disabled
+                    textColor,
                     ClientRectangle.Location,
                     ClientRectangle.Size,
-                    Alignment);
+                    _alignment);
             }
+        }
+
+        private Color GetTextColor()
+        {
+            if (!Enabled)
+            {
+                return SkinManager.TextDisabledOrHintColor;
+            }
+
+            if (HighEmphasis)
+            {
+                if (UseAccent)
+                {
+                    return SkinManager.ColorScheme.AccentColor;
+                }
+
+                return (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT) ?
+                    SkinManager.ColorScheme.PrimaryColor :
+                    SkinManager.ColorScheme.PrimaryColor.Lighten(0.25f);
+            }
+
+            return SkinManager.TextHighEmphasisColor;
         }
 
         protected override void InitLayout()
         {
-            Font = SkinManager.getFontByType(_fontType);
+            base.InitLayout();
+            // Font constructor'da da ayarlandığı için burada tekrar ayarlamaya gerek yok
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
         }
     }
 }

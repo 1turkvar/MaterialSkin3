@@ -25,8 +25,8 @@ namespace MaterialSkin.Controls
         #region Internal Vars
 
         private ObservableCollection<MaterialListBoxItem> _items = new ObservableCollection<MaterialListBoxItem>();
-        private List<object> _selectedItems;
-        private List<object> _indicates;
+        private List<MaterialListBoxItem> _selectedItems;
+        private List<int> _indicates;
         private bool _multiSelect;
         private int _selectedIndex;
         private MaterialListBoxItem _selectedItem;
@@ -67,7 +67,6 @@ namespace MaterialSkin.Controls
 
         #endregion Internal Vars
 
-
         #region Properties
 
         //Properties for managing the material design properties
@@ -97,7 +96,7 @@ namespace MaterialSkin.Controls
 
         [Browsable(false)]
         [Category("Material Skin"), Description("Gets a collection containing the currently selected items in the ListBox.")]
-        public List<object> SelectedItems => _selectedItems;
+        public List<MaterialListBoxItem> SelectedItems => _selectedItems;
 
         [Browsable(false), Category("Material Skin"), Description("Gets or sets the currently selected item in the ListBox.")]
         public MaterialListBoxItem SelectedItem
@@ -105,10 +104,20 @@ namespace MaterialSkin.Controls
             get => _selectedItem;
             set
             {
-                _selectedItem = value;
-                _selectedIndex = _items.IndexOf(_selectedItem);
-                update_selection();
-                Invalidate();
+                if (value != null && _items.Contains(value))
+                {
+                    _selectedItem = value;
+                    _selectedIndex = _items.IndexOf(_selectedItem);
+                    update_selection();
+                    Invalidate();
+                }
+                else if (value == null)
+                {
+                    _selectedItem = null;
+                    _selectedIndex = -1;
+                    update_selection();
+                    Invalidate();
+                }
             }
         }
 
@@ -117,11 +126,11 @@ namespace MaterialSkin.Controls
         public string SelectedText
         {
             get => _selectedText;
-            //set
-            //{
-            //    _selectedText = value;
-            //    Invalidate();
-            //}
+            set
+            {
+                _selectedText = value;
+                Invalidate();
+            }
         }
 
         [Browsable(false), Category("Material Skin"), Description("Gets or sets the zero-based index of the currently selected item in a ListBox.")]
@@ -130,9 +139,12 @@ namespace MaterialSkin.Controls
             get => _selectedIndex;
             set
             {
-                _selectedIndex = value;
-                update_selection();
-                Invalidate();
+                if (value >= -1 && value < _items.Count)
+                {
+                    _selectedIndex = value;
+                    update_selection();
+                    Invalidate();
+                }
             }
         }
 
@@ -140,11 +152,11 @@ namespace MaterialSkin.Controls
         public object SelectedValue
         {
             get => _selectedValue;
-            //set
-            //{
-            //    _selectedValue = value;
-            //    Invalidate();
-            //}
+            set
+            {
+                _selectedValue = value;
+                Invalidate();
+            }
         }
 
         [Category("Material Skin"), DefaultValue(false), Description("Gets or sets a value indicating whether the ListBox supports multiple rows.")]
@@ -276,8 +288,8 @@ namespace MaterialSkin.Controls
             _hoveredItem = -1;
             _showScrollBar = false;
             _items.CollectionChanged += InvalidateScroll;
-            _selectedItems = new List<object>();
-            _indicates = new List<object>();
+            _selectedItems = new List<MaterialListBoxItem>();
+            _indicates = new List<int>();
             _multiKeyDown = false;
             _scrollBar = new MaterialScrollBar()
             {
@@ -394,115 +406,118 @@ namespace MaterialSkin.Controls
             }
 
             //Set color and brush
-            Color SelectedColor = new Color();
-            if (UseAccentColor)
-                SelectedColor = SkinManager.ColorScheme.AccentColor;
-            else
-                SelectedColor = SkinManager.ColorScheme.PrimaryColor;
-            SolidBrush SelectedBrush = new SolidBrush(SelectedColor);
+            Color SelectedColor = UseAccentColor ?
+                SkinManager.ColorScheme.AccentColor :
+                SkinManager.ColorScheme.PrimaryColor;
 
-            //Draw items
-            for (int i = firstItem; i < lastItem; i++)
+            using (SolidBrush SelectedBrush = new SolidBrush(SelectedColor))
             {
-                string itemText = Items[i].Text;
-                string itemSecondaryText = Items[i].SecondaryText;
-
-                Rectangle itemRect = new Rectangle(0, (i - firstItem) * _itemHeight, Width - (_showScrollBar && _scrollBar.Visible ? _scrollBar.Width : 0), _itemHeight);
-
-                if (MultiSelect && _indicates.Count != 0)
+                //Draw items
+                for (int i = firstItem; i < lastItem; i++)
                 {
-                    if (i == _hoveredItem && !_indicates.Contains(i))
-                    {
-                        g.FillRectangle(SkinManager.BackgroundHoverBrush, itemRect);
-                    }
-                    else if (_indicates.Contains(i))
-                    {
-                        g.FillRectangle(Enabled ?
-                            SelectedBrush :
-                            new SolidBrush(DrawHelper.BlendColor(SelectedColor, SkinManager.SwitchOffDisabledThumbColor, 197)),
-                            itemRect);
-                    }
-                }
-                else
-                {
-                    if (i == _hoveredItem && i != SelectedIndex)
-                    {
-                        g.FillRectangle(SkinManager.BackgroundHoverBrush, itemRect);
-                    }
-                    else if (i == SelectedIndex)
-                    {
-                        g.FillRectangle(Enabled ?
-                            SelectedBrush :
-                            new SolidBrush(DrawHelper.BlendColor(SelectedColor, SkinManager.SwitchOffDisabledThumbColor, 197)),
-                            itemRect);
-                    }
-                }
+                    string itemText = Items[i].Text;
+                    string itemSecondaryText = Items[i].SecondaryText;
 
-                //Define primary & secondary Text Rect
-                Rectangle primaryTextRect = new Rectangle(itemRect.X + _leftrightPadding, itemRect.Y, itemRect.Width - (2 * _leftrightPadding), itemRect.Height);
-                Rectangle secondaryTextRect = new Rectangle();
+                    Rectangle itemRect = new Rectangle(0, (i - firstItem) * _itemHeight, Width - (_showScrollBar && _scrollBar.Visible ? _scrollBar.Width : 0), _itemHeight);
 
-                if (_style == ListBoxStyle.TwoLine)
-                {
-                    primaryTextRect.Height = (primaryTextRect.Height / 2) - _primaryTextBottomPadding;
-                }
-                else if (_style == ListBoxStyle.ThreeLine)
-                {
-                    if (_density == MaterialItemDensity.Default)
+                    if (MultiSelect && _indicates.Count != 0)
                     {
-                        primaryTextRect.Height = 36 - _primaryTextBottomPadding;
+                        if (i == _hoveredItem && !_indicates.Contains(i))
+                        {
+                            g.FillRectangle(SkinManager.BackgroundHoverBrush, itemRect);
+                        }
+                        else if (_indicates.Contains(i))
+                        {
+                            g.FillRectangle(Enabled ?
+                                SelectedBrush :
+                                new SolidBrush(DrawHelper.BlendColor(SelectedColor, SkinManager.SwitchOffDisabledThumbColor, 197)),
+                                itemRect);
+                        }
                     }
                     else
                     {
-                        primaryTextRect.Height = 30 - _primaryTextBottomPadding;
+                        if (i == _hoveredItem && i != SelectedIndex)
+                        {
+                            g.FillRectangle(SkinManager.BackgroundHoverBrush, itemRect);
+                        }
+                        else if (i == SelectedIndex)
+                        {
+                            g.FillRectangle(Enabled ?
+                                SelectedBrush :
+                                new SolidBrush(DrawHelper.BlendColor(SelectedColor, SkinManager.SwitchOffDisabledThumbColor, 197)),
+                                itemRect);
+                        }
                     }
-                }
-                secondaryTextRect = new Rectangle(primaryTextRect.X, primaryTextRect.Y + primaryTextRect.Height + (_primaryTextBottomPadding + _secondaryTextTopPadding), primaryTextRect.Width, _itemHeight - _secondaryTextBottomPadding - primaryTextRect.Height - (_primaryTextBottomPadding + _secondaryTextTopPadding));
 
-                using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
-                {
-                    NativeText.DrawTransparentText(
-                    itemText,
-                    _primaryFont,
-                    Enabled ? (i != SelectedIndex || UseAccentColor) ?
-                    SkinManager.TextHighEmphasisColor :
-                    SkinManager.ColorScheme.TextColor :
-                    SkinManager.TextDisabledOrHintColor, // Disabled
-                    primaryTextRect.Location,
-                    primaryTextRect.Size,
-                    primaryTextAlignFlags);
+                    //Define primary & secondary Text Rect
+                    Rectangle primaryTextRect = new Rectangle(itemRect.X + _leftrightPadding, itemRect.Y, itemRect.Width - (2 * _leftrightPadding), itemRect.Height);
+                    Rectangle secondaryTextRect = new Rectangle();
+
                     if (_style == ListBoxStyle.TwoLine)
                     {
-                        NativeText.DrawTransparentText(
-                        itemSecondaryText,
-                        _secondaryFont,
-                        Enabled ? (i != SelectedIndex || UseAccentColor) ?
-                        SkinManager.TextDisabledOrHintColor :
-                        SkinManager.ColorScheme.TextColor.Darken(0.25f) :
-                        SkinManager.TextDisabledOrHintColor, // Disabled
-                        secondaryTextRect.Location,
-                        secondaryTextRect.Size,
-                        secondaryTextAlignFlags);
+                        primaryTextRect.Height = (primaryTextRect.Height / 2) - _primaryTextBottomPadding;
                     }
                     else if (_style == ListBoxStyle.ThreeLine)
                     {
-                        NativeText.DrawMultilineTransparentText(
-                        itemSecondaryText,
-                        _secondaryFont,
+                        if (_density == MaterialItemDensity.Default)
+                        {
+                            primaryTextRect.Height = 36 - _primaryTextBottomPadding;
+                        }
+                        else
+                        {
+                            primaryTextRect.Height = 30 - _primaryTextBottomPadding;
+                        }
+                    }
+                    secondaryTextRect = new Rectangle(primaryTextRect.X, primaryTextRect.Y + primaryTextRect.Height + (_primaryTextBottomPadding + _secondaryTextTopPadding), primaryTextRect.Width, _itemHeight - _secondaryTextBottomPadding - primaryTextRect.Height - (_primaryTextBottomPadding + _secondaryTextTopPadding));
+
+                    using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
+                    {
+                        NativeText.DrawTransparentText(
+                        itemText,
+                        _primaryFont,
                         Enabled ? (i != SelectedIndex || UseAccentColor) ?
-                        SkinManager.TextDisabledOrHintColor :
-                        SkinManager.ColorScheme.TextColor.Darken(0.25f) :
+                        SkinManager.TextHighEmphasisColor :
+                        SkinManager.ColorScheme.TextColor :
                         SkinManager.TextDisabledOrHintColor, // Disabled
-                        secondaryTextRect.Location,
-                        secondaryTextRect.Size,
-                        secondaryTextAlignFlags);
+                        primaryTextRect.Location,
+                        primaryTextRect.Size,
+                        primaryTextAlignFlags);
+                        if (_style == ListBoxStyle.TwoLine)
+                        {
+                            NativeText.DrawTransparentText(
+                            itemSecondaryText,
+                            _secondaryFont,
+                            Enabled ? (i != SelectedIndex || UseAccentColor) ?
+                            SkinManager.TextDisabledOrHintColor :
+                            SkinManager.ColorScheme.TextColor.Darken(0.25f) :
+                            SkinManager.TextDisabledOrHintColor, // Disabled
+                            secondaryTextRect.Location,
+                            secondaryTextRect.Size,
+                            secondaryTextAlignFlags);
+                        }
+                        else if (_style == ListBoxStyle.ThreeLine)
+                        {
+                            NativeText.DrawMultilineTransparentText(
+                            itemSecondaryText,
+                            _secondaryFont,
+                            Enabled ? (i != SelectedIndex || UseAccentColor) ?
+                            SkinManager.TextDisabledOrHintColor :
+                            SkinManager.ColorScheme.TextColor.Darken(0.25f) :
+                            SkinManager.TextDisabledOrHintColor, // Disabled
+                            secondaryTextRect.Location,
+                            secondaryTextRect.Size,
+                            secondaryTextAlignFlags);
+                        }
                     }
                 }
-
             }
+
             if (ShowBorder)
             {
-                g.DrawRectangle(Pens.LightGray, mainRect);
+                using (Pen borderPen = new Pen(BorderColor))
+                {
+                    g.DrawRectangle(borderPen, mainRect);
+                }
             }
         }
 
@@ -553,11 +568,15 @@ namespace MaterialSkin.Controls
 
         public void RemoveItemAt(int index)
         {
+            if (index < 0 || index >= _items.Count)
+                return;
+
             if (index <= _selectedIndex)
             {
                 _selectedIndex -= 1;
                 update_selection();
             }
+
             _items.RemoveAt(index);
             InvalidateScroll(this, null);
             ItemsCountChanged?.Invoke(this, new EventArgs());
@@ -565,11 +584,15 @@ namespace MaterialSkin.Controls
 
         public void RemoveItem(MaterialListBoxItem item)
         {
+            if (item == null || !_items.Contains(item))
+                return;
+
             if (_items.IndexOf(item) <= _selectedIndex)
             {
                 _selectedIndex -= 1;
                 update_selection();
             }
+
             _items.Remove(item);
             InvalidateScroll(this, null);
             ItemsCountChanged?.Invoke(this, new EventArgs());
@@ -582,10 +605,13 @@ namespace MaterialSkin.Controls
 
         public void RemoveItems(MaterialListBoxItem[] itemsToRemove)
         {
+            if (itemsToRemove == null || itemsToRemove.Length == 0)
+                return;
+
             _updating = true;
             foreach (MaterialListBoxItem item in itemsToRemove)
             {
-                if (_items.IndexOf(item) <= _selectedIndex)
+                if (item != null && _items.Contains(item) && _items.IndexOf(item) <= _selectedIndex)
                 {
                     _selectedIndex -= 1;
                     update_selection();
@@ -600,29 +626,35 @@ namespace MaterialSkin.Controls
 
         private void update_selection()
         {
-            if (_selectedIndex >= 0)
+            if (_selectedIndex >= 0 && _selectedIndex < _items.Count)
             {
                 _selectedItem = _items[_selectedIndex];
                 _selectedValue = _items[_selectedIndex];
                 _selectedText = _items[_selectedIndex].ToString();
+
+                // Update _selectedItems collection in MultiSelect mode
+                if (MultiSelect && _selectedItem != null && !_selectedItems.Contains(_selectedItem))
+                {
+                    _selectedItems.Add(_selectedItem);
+                }
             }
             else
             {
                 _selectedItem = null;
                 _selectedValue = null;
                 _selectedText = null;
+                _selectedIndex = -1;
             }
         }
 
         public void Clear()
         {
             _updating = true;
-            for (int i = _items.Count - 1; i >= 0; i += -1)
-            {
-                _items.RemoveAt(i);
-            }
+            _items.Clear();
             _updating = false;
             _selectedIndex = -1;
+            _selectedItems.Clear();
+            _indicates.Clear();
             update_selection();
 
             InvalidateScroll(this, null);
@@ -637,6 +669,7 @@ namespace MaterialSkin.Controls
         public void EndUpdate()
         {
             _updating = false;
+            InvalidateScroll(this, null);
         }
 
         #endregion Methods
@@ -678,17 +711,24 @@ namespace MaterialSkin.Controls
                 {
                     if (MultiSelect && _multiKeyDown)
                     {
-                        _indicates.Add(index);
-                        _selectedItems.Add(Items[index]);
+                        if (!_indicates.Contains(index))
+                        {
+                            _indicates.Add(index);
+                            if (!_selectedItems.Contains(_items[index]))
+                            {
+                                _selectedItems.Add(_items[index]);
+                            }
+                        }
                     }
                     else
                     {
                         _indicates.Clear();
                         _selectedItems.Clear();
-                        _selectedItem = Items[index];
+                        _selectedItem = _items[index];
                         _selectedIndex = index;
-                        _selectedValue = Items[index];
-                        _selectedText = Items[index].ToString();
+                        _selectedValue = _items[index];
+                        _selectedText = _items[index].ToString();
+                        _selectedItems.Add(_selectedItem);
                         SelectedIndexChanged?.Invoke(this, _selectedItem);
                         SelectedValueChanged?.Invoke(this, _selectedItem);
                     }
@@ -706,12 +746,16 @@ namespace MaterialSkin.Controls
 
         private void InvalidateScroll(object sender, EventArgs e)
         {
+            if (_scrollBar == null) return;
+
             _scrollBar.Maximum = _items.Count * _itemHeight;
             _scrollBar.SmallChange = _itemHeight;
             _scrollBar.LargeChange = Height;
-            _scrollBar.Visible = (_items.Count * _itemHeight) > Height;
+            _scrollBar.Visible = _showScrollBar && (_items.Count * _itemHeight) > Height;
             if (_items.Count == 0)
-            { _scrollBar.Value = 0; }
+            {
+                _scrollBar.Value = 0;
+            }
             Invalidate();
         }
 
@@ -722,6 +766,8 @@ namespace MaterialSkin.Controls
 
         private void InvalidateLayout()
         {
+            if (_scrollBar == null) return;
+
             _scrollBar.Size = new Size(12, Height - (ShowBorder ? 2 : 0));
             _scrollBar.Location = new Point(Width - (_scrollBar.Width + (ShowBorder ? 1 : 0)), ShowBorder ? 1 : 0);
             Invalidate();
@@ -758,26 +804,44 @@ namespace MaterialSkin.Controls
                 case Keys.Down:
                     try
                     {
-                        _selectedItems.Remove(_items[SelectedIndex]);
-                        SelectedIndex += 1;
-                        _selectedItems.Add(_items[SelectedIndex]);
+                        if (_selectedIndex >= 0 && _selectedIndex < _items.Count - 1)
+                        {
+                            if (MultiSelect && _selectedItem != null)
+                            {
+                                _selectedItems.Remove(_selectedItem);
+                            }
+                            SelectedIndex += 1;
+                            if (MultiSelect && _selectedItem != null)
+                            {
+                                _selectedItems.Add(_selectedItem);
+                            }
+                        }
                     }
                     catch
                     {
-                        //
+                        // Ignored
                     }
                     break;
 
                 case Keys.Up:
                     try
                     {
-                        _selectedItems.Remove(_items[SelectedIndex]);
-                        SelectedIndex -= 1;
-                        _selectedItems.Add(_items[SelectedIndex]);
+                        if (_selectedIndex > 0)
+                        {
+                            if (MultiSelect && _selectedItem != null)
+                            {
+                                _selectedItems.Remove(_selectedItem);
+                            }
+                            SelectedIndex -= 1;
+                            if (MultiSelect && _selectedItem != null)
+                            {
+                                _selectedItems.Add(_selectedItem);
+                            }
+                        }
                     }
                     catch
                     {
-                        //
+                        // Ignored
                     }
                     break;
             }
@@ -807,7 +871,10 @@ namespace MaterialSkin.Controls
             {
                 _hoveredItem = index;
             }
-
+            else
+            {
+                _hoveredItem = -1;
+            }
         }
 
         protected override void OnMouseLeave(EventArgs e)
@@ -821,9 +888,13 @@ namespace MaterialSkin.Controls
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            _scrollBar.Size = new Size(12, Height - (ShowBorder ? 2 : 0));
-            _scrollBar.Location = new Point(Width - (_scrollBar.Width + (ShowBorder ? 1 : 0)), ShowBorder ? 1 : 0);
-            InvalidateScroll(this, e);
+
+            if (_scrollBar != null)
+            {
+                _scrollBar.Size = new Size(12, Height - (ShowBorder ? 2 : 0));
+                _scrollBar.Location = new Point(Width - (_scrollBar.Width + (ShowBorder ? 1 : 0)), ShowBorder ? 1 : 0);
+                InvalidateScroll(this, e);
+            }
         }
 
         public const int WM_SETCURSOR = 0x0020;
