@@ -12,8 +12,8 @@
     [ToolboxItem(false), Description("This control has been replaced by MaterialTextBox2"), Obsolete("Use MaterialTextBox2 instead", false)]
     public class MaterialTextBox : RichTextBox, IMaterialControl, IDisposable
     {
-        private readonly MaterialContextMenuStrip cms = new TextBoxContextMenuStrip();
-        private ContextMenuStrip _lastContextMenuStrip = new ContextMenuStrip();
+        private readonly MaterialContextMenuStrip cms;
+        private ContextMenuStrip _lastContextMenuStrip;
 
         //Properties for managing the material design properties
         [Browsable(false)]
@@ -237,25 +237,26 @@
             };
             _animationManager.OnAnimationProgress += sender => Invalidate();
 
-            SkinManager.ColorSchemeChanged += sender =>
-            {
-                PreProcessIcons();
-            };
-
-            SkinManager.ThemeChanged += sender =>
-            {
-                PreProcessIcons();
-            };
-
+            cms = new TextBoxContextMenuStrip();
             cms.Opening += ContextMenuStripOnOpening;
             cms.OnItemClickStart += ContextMenuStripOnItemClickStart;
+            _lastContextMenuStrip = cms;
             ContextMenuStrip = cms;
-
-            MaxLength = 50;
 
             // Initialize dictionaries
             iconsBrushes = new Dictionary<string, TextureBrush>(2);
             iconsErrorBrushes = new Dictionary<string, TextureBrush>(2);
+
+            // Event handlers for resources cleanup
+            SkinManager.ColorSchemeChanged += OnSkinManagerUpdated;
+            SkinManager.ThemeChanged += OnSkinManagerUpdated;
+
+            MaxLength = 50;
+        }
+
+        private void OnSkinManagerUpdated(object sender)
+        {
+            PreProcessIcons();
         }
 
         private const int EM_SETPASSWORDCHAR = 0x00cc;
@@ -423,99 +424,101 @@
 
                 if (_leadingIcon != null)
                 {
-                    // ********************
-                    // *** _leadingIcon ***
-                    // ********************
-
-                    //Resize icon if greater than ICON_SIZE
-                    Size newSize_leadingIcon = ResizeIcon(_leadingIcon);
-                    using (Bitmap _leadingIconIconResized = new Bitmap(_leadingIcon, newSize_leadingIcon.Width, newSize_leadingIcon.Height))
-                    {
-                        // Create a pre-processed copy of the image (GRAY)
-                        using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
-                        {
-                            using (Graphics gGray = Graphics.FromImage(bgray))
-                            {
-                                gGray.DrawImage(_leadingIconIconResized,
-                                    new Point[] {
-                                                new Point(0, 0),
-                                                new Point(destRect.Width, 0),
-                                                new Point(0, destRect.Height),
-                                    },
-                                    destRect, GraphicsUnit.Pixel, grayImageAttributes);
-                            }
-
-                            // added processed image to brush for drawing
-                            TextureBrush textureBrushGray = new TextureBrush(bgray);
-                            textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
-
-                            var iconRect = _leadingIconBounds;
-                            textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _leadingIconIconResized.Width / 2,
-                                                            iconRect.Y + iconRect.Height / 2 - _leadingIconIconResized.Height / 2);
-
-                            // add to dictionary
-                            iconsBrushes.Add("_leadingIcon", textureBrushGray);
-                        }
-                    }
+                    ProcessLeadingIcon(destRect, grayImageAttributes);
                 }
 
                 if (_trailingIcon != null)
                 {
-                    // *********************
-                    // *** _trailingIcon ***
-                    // *********************
+                    ProcessTrailingIcon(destRect, grayImageAttributes, redImageAttributes);
+                }
+            }
+        }
 
-                    //Resize icon if greater than ICON_SIZE
-                    Size newSize_trailingIcon = ResizeIcon(_trailingIcon);
-                    using (Bitmap _trailingIconResized = new Bitmap(_trailingIcon, newSize_trailingIcon.Width, newSize_trailingIcon.Height))
+        private void ProcessLeadingIcon(Rectangle destRect, ImageAttributes grayImageAttributes)
+        {
+            //Resize icon if greater than ICON_SIZE
+            Size newSize_leadingIcon = ResizeIcon(_leadingIcon);
+            using (Bitmap _leadingIconIconResized = new Bitmap(_leadingIcon, newSize_leadingIcon.Width, newSize_leadingIcon.Height))
+            {
+                // Create a pre-processed copy of the image (GRAY)
+                using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
+                {
+                    using (Graphics gGray = Graphics.FromImage(bgray))
                     {
-                        // Create a pre-processed copy of the image (GRAY)
-                        using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
+                        gGray.DrawImage(_leadingIconIconResized,
+                            new Point[] {
+                                        new Point(0, 0),
+                                        new Point(destRect.Width, 0),
+                                        new Point(0, destRect.Height),
+                            },
+                            destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                    }
+
+                    // added processed image to brush for drawing
+                    TextureBrush textureBrushGray = new TextureBrush(bgray);
+                    textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+
+                    var iconRect = _leadingIconBounds;
+                    textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _leadingIconIconResized.Width / 2,
+                                                    iconRect.Y + iconRect.Height / 2 - _leadingIconIconResized.Height / 2);
+
+                    // add to dictionary
+                    iconsBrushes.Add("_leadingIcon", textureBrushGray);
+                }
+            }
+        }
+
+        private void ProcessTrailingIcon(Rectangle destRect, ImageAttributes grayImageAttributes, ImageAttributes redImageAttributes)
+        {
+            //Resize icon if greater than ICON_SIZE
+            Size newSize_trailingIcon = ResizeIcon(_trailingIcon);
+            using (Bitmap _trailingIconResized = new Bitmap(_trailingIcon, newSize_trailingIcon.Width, newSize_trailingIcon.Height))
+            {
+                // Create a pre-processed copy of the image (GRAY)
+                using (Bitmap bgray = new Bitmap(destRect.Width, destRect.Height))
+                {
+                    using (Graphics gGray = Graphics.FromImage(bgray))
+                    {
+                        gGray.DrawImage(_trailingIconResized,
+                            new Point[] {
+                                        new Point(0, 0),
+                                        new Point(destRect.Width, 0),
+                                        new Point(0, destRect.Height),
+                            },
+                            destRect, GraphicsUnit.Pixel, grayImageAttributes);
+                    }
+
+                    //Create a pre - processed copy of the image(RED)
+                    using (Bitmap bred = new Bitmap(destRect.Width, destRect.Height))
+                    {
+                        using (Graphics gred = Graphics.FromImage(bred))
                         {
-                            using (Graphics gGray = Graphics.FromImage(bgray))
-                            {
-                                gGray.DrawImage(_trailingIconResized,
-                                    new Point[] {
-                                                new Point(0, 0),
-                                                new Point(destRect.Width, 0),
-                                                new Point(0, destRect.Height),
-                                    },
-                                    destRect, GraphicsUnit.Pixel, grayImageAttributes);
-                            }
-
-                            //Create a pre - processed copy of the image(RED)
-                            using (Bitmap bred = new Bitmap(destRect.Width, destRect.Height))
-                            {
-                                using (Graphics gred = Graphics.FromImage(bred))
-                                {
-                                    gred.DrawImage(_trailingIconResized,
-                                        new Point[] {
-                                                    new Point(0, 0),
-                                                    new Point(destRect.Width, 0),
-                                                    new Point(0, destRect.Height),
-                                        },
-                                        destRect, GraphicsUnit.Pixel, redImageAttributes);
-                                }
-
-                                // added processed image to brush for drawing
-                                TextureBrush textureBrushGray = new TextureBrush(bgray);
-                                TextureBrush textureBrushRed = new TextureBrush(bred);
-
-                                textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
-                                textureBrushRed.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
-
-                                var iconRect = _trailingIconBounds;
-
-                                textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
-                                                                    iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
-                                textureBrushRed.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
-                                                                     iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
-
-                                // add to dictionary
-                                iconsBrushes.Add("_trailingIcon", textureBrushGray);
-                                iconsErrorBrushes.Add("_trailingIcon", textureBrushRed);
-                            }
+                            gred.DrawImage(_trailingIconResized,
+                                new Point[] {
+                                            new Point(0, 0),
+                                            new Point(destRect.Width, 0),
+                                            new Point(0, destRect.Height),
+                                },
+                                destRect, GraphicsUnit.Pixel, redImageAttributes);
                         }
+
+                        // added processed image to brush for drawing
+                        TextureBrush textureBrushGray = new TextureBrush(bgray);
+                        TextureBrush textureBrushRed = new TextureBrush(bred);
+
+                        textureBrushGray.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+                        textureBrushRed.WrapMode = System.Drawing.Drawing2D.WrapMode.Clamp;
+
+                        var iconRect = _trailingIconBounds;
+
+                        textureBrushGray.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
+                                                            iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
+                        textureBrushRed.TranslateTransform(iconRect.X + iconRect.Width / 2 - _trailingIconResized.Width / 2,
+                                                             iconRect.Y + iconRect.Height / 2 - _trailingIconResized.Height / 2);
+
+                        // add to dictionary
+                        iconsBrushes.Add("_trailingIcon", textureBrushGray);
+                        iconsErrorBrushes.Add("_trailingIcon", textureBrushRed);
                     }
                 }
             }
@@ -528,7 +531,7 @@
             {
                 foreach (var brush in iconsBrushes.Values)
                 {
-                    brush.Dispose();
+                    brush?.Dispose();
                 }
                 iconsBrushes.Clear();
             }
@@ -537,7 +540,7 @@
             {
                 foreach (var brush in iconsErrorBrushes.Values)
                 {
-                    brush.Dispose();
+                    brush?.Dispose();
                 }
                 iconsErrorBrushes.Clear();
             }
@@ -559,7 +562,7 @@
             _trailingIconBounds = new Rectangle(Width - (ICON_SIZE + 8), (HEIGHT / 2) - (ICON_SIZE / 2), ICON_SIZE, ICON_SIZE);
             _textfieldBounds = new Rectangle(_left_padding, ClientRectangle.Y, Width - _left_padding - _right_padding, LINE_Y);
 
-            if (RedefineTextField)
+            if (RedefineTextField && IsHandleCreated)
             {
                 var rect = new Rectangle(_left_padding, UseTallSize ? hasHint ?
             (HINT_TEXT_SMALL_Y + HINT_TEXT_SMALL_SIZE) : // Has hint and it's tall
@@ -601,17 +604,17 @@
             }
 
             //Leading Icon
-            if (LeadingIcon != null && iconsBrushes.ContainsKey("_leadingIcon"))
+            if (LeadingIcon != null && iconsBrushes != null && iconsBrushes.ContainsKey("_leadingIcon"))
             {
                 g.FillRectangle(iconsBrushes["_leadingIcon"], _leadingIconBounds);
             }
 
             //Trailing Icon
-            if (TrailingIcon != null)
+            if (TrailingIcon != null && iconsBrushes != null && iconsBrushes.ContainsKey("_trailingIcon"))
             {
                 if (_errorState && iconsErrorBrushes.ContainsKey("_trailingIcon"))
                     g.FillRectangle(iconsErrorBrushes["_trailingIcon"], _trailingIconBounds);
-                else if (iconsBrushes.ContainsKey("_trailingIcon"))
+                else
                     g.FillRectangle(iconsBrushes["_trailingIcon"], _trailingIconBounds);
             }
 

@@ -9,7 +9,7 @@
       <AssemblyName>MaterialSkin</AssemblyName>
       <RootNamespace>$(AssemblyName)</RootNamespace>
       <PackageId>MaterialSkin.3</PackageId>
-      <Version>2.3.4</Version>
+      <Version>2.3.5</Version>
       <Product>MaterialSkin 2</Product>
       <Authors>leocb, IgnaceMaes, orapps44</Authors>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -21,8 +21,8 @@
       <Copyright>Copyright Leonardo C Bottaro © 2021</Copyright>
       <PackageTags>material design materialdesign google forms theme skin</PackageTags>
       <PackageReadmeFile>README.md</PackageReadmeFile>
-      <AssemblyVersion>2.3.4.0</AssemblyVersion>
-      <FileVersion>2.3.4.0</FileVersion>
+      <AssemblyVersion>2.3.5.0</AssemblyVersion>
+      <FileVersion>2.3.5.0</FileVersion>
     </PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
 		<Reference Include="System.Design" />
@@ -103,9 +103,7 @@
       <Compile Update="Controls\MaterialTabSelector.cs">
         <SubType>Component</SubType>
       </Compile>
-      <Compile Update="Controls\MaterialProgressBar.cs">
-        <SubType>Component</SubType>
-      </Compile>
+      <Compile Update="Controls\MaterialProgressBar.cs" />
     </ItemGroup>
     <ItemGroup>
 		<EmbeddedResource Include="Resources\Roboto-Regular.ttf" />

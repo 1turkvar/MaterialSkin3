@@ -10,6 +10,41 @@
 
     public class MaterialSwitch : CheckBox, IMaterialControl
     {
+        #region Fields
+
+        // Constants for sizing and appearance
+        private const int THUMB_SIZE = 22;
+        private const int THUMB_SIZE_HALF = THUMB_SIZE / 2;
+        private const int TRACK_SIZE_HEIGHT = 14;
+        private const int TRACK_SIZE_WIDTH = 36;
+        private const int TRACK_RADIUS = TRACK_SIZE_HEIGHT / 2;
+        private const int RIPPLE_DIAMETER = 37;
+        private const int TEXT_OFFSET = THUMB_SIZE;
+        private const int ALPHA_DISABLED = 128;
+        private const int ALPHA_HOVER = 40;
+
+        // Animation values
+        private int TRACK_CENTER_Y;
+        private int TRACK_CENTER_X_BEGIN;
+        private int TRACK_CENTER_X_END;
+        private int TRACK_CENTER_X_DELTA;
+        private int _trackOffsetY;
+
+        // Animation managers
+        private readonly AnimationManager _checkAM;
+        private readonly AnimationManager _hoverAM;
+        private readonly AnimationManager _rippleAM;
+
+        private bool _ripple;
+        private bool _hovered = false;
+
+        // Checkmark points for drawing
+        private static readonly Point[] CheckmarkLine = { new Point(3, 8), new Point(7, 12), new Point(14, 5) };
+
+        #endregion
+
+        #region Properties
+
         [Browsable(false)]
         public int Depth { get; set; }
 
@@ -22,8 +57,6 @@
         [Browsable(false)]
         public Point MouseLocation { get; set; }
 
-        private bool _ripple;
-
         [Category("Appearance")]
         public bool Ripple
         {
@@ -31,7 +64,7 @@
             set
             {
                 _ripple = value;
-                AutoSize = AutoSize; //Make AutoSize directly set the bounds.
+                AutoSize = AutoSize; // Make AutoSize directly set the bounds.
 
                 if (value)
                 {
@@ -42,30 +75,26 @@
             }
         }
 
-        [Category("Appearance")]
+        [Category("Behavior")]
         [Browsable(true), DefaultValue(false), EditorBrowsable(EditorBrowsableState.Always)]
         public bool ReadOnly { get; set; }
 
-        private readonly AnimationManager _checkAM;
-        private readonly AnimationManager _hoverAM;
-        private readonly AnimationManager _rippleAM;
+        public override bool AutoSize
+        {
+            get { return base.AutoSize; }
+            set
+            {
+                base.AutoSize = value;
+                if (value)
+                {
+                    Size = new Size(10, 10);
+                }
+            }
+        }
 
-        private const int THUMB_SIZE = 22;
+        #endregion
 
-        private const int THUMB_SIZE_HALF = THUMB_SIZE / 2;
-
-        private const int TRACK_SIZE_HEIGHT = (int)(14);
-        private const int TRACK_SIZE_WIDTH = (int)(36);
-        private const int TRACK_RADIUS = (int)(TRACK_SIZE_HEIGHT / 2);
-
-        private int TRACK_CENTER_Y;
-        private int TRACK_CENTER_X_BEGIN;
-        private int TRACK_CENTER_X_END;
-        private int TRACK_CENTER_X_DELTA;
-
-        private const int RIPPLE_DIAMETER = 37;
-
-        private int _trackOffsetY;
+        #region Constructor
 
         public MaterialSwitch()
         {
@@ -91,7 +120,7 @@
 
             CheckedChanged += (sender, args) =>
             {
-                if (Ripple)
+                if (Ripple && !ReadOnly)
                     _checkAM.StartNewAnimation(Checked ? AnimationDirection.In : AnimationDirection.Out);
             };
 
@@ -100,9 +129,36 @@
             ReadOnly = false;
         }
 
+        #endregion
+
+        #region Method Overrides
+
         protected override void OnClick(EventArgs e)
         {
             if (!ReadOnly) base.OnClick(e);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (!ReadOnly) base.OnKeyDown(e);
+            
+            // Handle ripple animation for keyboard input
+            if (Ripple && (e.KeyCode == Keys.Space) && _rippleAM.GetAnimationCount() == 0)
+            {
+                _rippleAM.SecondaryIncrement = 0;
+                _rippleAM.StartNewAnimation(AnimationDirection.InOutIn, new object[] { Checked });
+            }
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            if (!ReadOnly) base.OnKeyUp(e);
+            
+            if (Ripple && (e.KeyCode == Keys.Space))
+            {
+                MouseState = MouseState.HOVER;
+                _rippleAM.SecondaryIncrement = 0.08;
+            }
         }
 
         protected override void OnSizeChanged(EventArgs e)
@@ -127,10 +183,6 @@
             var w = TRACK_SIZE_WIDTH + THUMB_SIZE + strSize.Width;
             return Ripple ? new Size(w, RIPPLE_DIAMETER) : new Size(w, THUMB_SIZE);
         }
-
-        private static readonly Point[] CheckmarkLine = { new Point(3, 8), new Point(7, 12), new Point(14, 5) };
-
-        private const int TEXT_OFFSET = THUMB_SIZE;
 
         protected override void OnPaint(PaintEventArgs pevent)
         {
@@ -168,38 +220,78 @@
             // Ripple
             int rippleSize = (Height % 2 == 0) ? Height - 2 : Height - 3;
 
-            Color rippleColor = Color.FromArgb(40, // color alpha
+            Color rippleColor = Color.FromArgb(ALPHA_HOVER, // color alpha
                 Checked ? SkinManager.ColorScheme.AccentColor : // On color
                 (SkinManager.Theme == MaterialSkinManager.Themes.LIGHT ? Color.Black : Color.White)); // Off color
 
+            // Draw ripple animations
+            DrawRippleAnimations(g, rippleSize, rippleColor, OffsetX);
+
+            // Draw hover effect
+            DrawHoverEffect(g, rippleSize, rippleColor, OffsetX);
+
+            // Draw thumb shadow and thumb
+            DrawThumb(g, OffsetX, thumbColor);
+
+            // Draw text
+            DrawText(g);
+        }
+
+        protected override void OnCreateControl()
+        {
+            base.OnCreateControl();
+
+            if (DesignMode) return;
+
+            MouseState = MouseState.OUT;
+
+            SetupEventHandlers();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void DrawRippleAnimations(Graphics g, int rippleSize, Color rippleColor, int offsetX)
+        {
             if (Ripple && _rippleAM.IsAnimating())
             {
                 for (int i = 0; i < _rippleAM.GetAnimationCount(); i++)
                 {
                     double rippleAnimProgress = _rippleAM.GetProgress(i);
-                    int rippleAnimatedDiameter = (_rippleAM.GetDirection(i) == AnimationDirection.InOutIn) ? (int)(rippleSize * (0.7 + (0.3 * rippleAnimProgress))) : rippleSize;
+                    int rippleAnimatedDiameter = (_rippleAM.GetDirection(i) == AnimationDirection.InOutIn) ? 
+                        (int)(rippleSize * (0.7 + (0.3 * rippleAnimProgress))) : rippleSize;
 
-                    using (SolidBrush rippleBrush = new SolidBrush(Color.FromArgb((int)(40 * rippleAnimProgress), rippleColor.RemoveAlpha())))
+                    using (SolidBrush rippleBrush = new SolidBrush(Color.FromArgb((int)(ALPHA_HOVER * rippleAnimProgress), rippleColor.RemoveAlpha())))
                     {
-                        g.FillEllipse(rippleBrush, new Rectangle(TRACK_CENTER_X_BEGIN + OffsetX - rippleAnimatedDiameter / 2, TRACK_CENTER_Y - rippleAnimatedDiameter / 2, rippleAnimatedDiameter, rippleAnimatedDiameter));
+                        g.FillEllipse(rippleBrush, new Rectangle(TRACK_CENTER_X_BEGIN + offsetX - rippleAnimatedDiameter / 2, 
+                            TRACK_CENTER_Y - rippleAnimatedDiameter / 2, rippleAnimatedDiameter, rippleAnimatedDiameter));
                     }
                 }
             }
+        }
 
-            // Hover
+        private void DrawHoverEffect(Graphics g, int rippleSize, Color rippleColor, int offsetX)
+        {
             if (Ripple)
             {
                 double rippleAnimProgress = _hoverAM.GetProgress();
                 int rippleAnimatedDiameter = (int)(rippleSize * (0.7 + (0.3 * rippleAnimProgress)));
 
-                using (SolidBrush rippleBrush = new SolidBrush(Color.FromArgb((int)(40 * rippleAnimProgress), rippleColor.RemoveAlpha())))
+                using (SolidBrush rippleBrush = new SolidBrush(Color.FromArgb((int)(ALPHA_HOVER * rippleAnimProgress), rippleColor.RemoveAlpha())))
                 {
-                    g.FillEllipse(rippleBrush, new Rectangle(TRACK_CENTER_X_BEGIN + OffsetX - rippleAnimatedDiameter / 2, TRACK_CENTER_Y - rippleAnimatedDiameter / 2, rippleAnimatedDiameter, rippleAnimatedDiameter));
+                    g.FillEllipse(rippleBrush, new Rectangle(TRACK_CENTER_X_BEGIN + offsetX - rippleAnimatedDiameter / 2, 
+                        TRACK_CENTER_Y - rippleAnimatedDiameter / 2, rippleAnimatedDiameter, rippleAnimatedDiameter));
                 }
             }
+        }
 
-            // draw Thumb Shadow
-            RectangleF thumbBounds = new RectangleF(TRACK_CENTER_X_BEGIN + OffsetX - THUMB_SIZE_HALF, TRACK_CENTER_Y - THUMB_SIZE_HALF, THUMB_SIZE, THUMB_SIZE);
+        private void DrawThumb(Graphics g, int offsetX, Color thumbColor)
+        {
+            // Draw Thumb Shadow
+            RectangleF thumbBounds = new RectangleF(TRACK_CENTER_X_BEGIN + offsetX - THUMB_SIZE_HALF, 
+                TRACK_CENTER_Y - THUMB_SIZE_HALF, THUMB_SIZE, THUMB_SIZE);
+                
             using (SolidBrush shadowBrush = new SolidBrush(Color.FromArgb(12, 0, 0, 0)))
             {
                 g.FillEllipse(shadowBrush, new RectangleF(thumbBounds.X - 2, thumbBounds.Y - 1, thumbBounds.Width + 4, thumbBounds.Height + 6));
@@ -209,13 +301,15 @@
                 g.FillEllipse(shadowBrush, new RectangleF(thumbBounds.X - 0, thumbBounds.Y + 1, thumbBounds.Width + 0, thumbBounds.Height + 0));
             }
 
-            // draw Thumb
+            // Draw Thumb
             using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
             {
                 g.FillEllipse(thumbBrush, thumbBounds);
             }
+        }
 
-            // draw text
+        private void DrawText(Graphics g)
+        {
             using (NativeTextRenderer NativeText = new NativeTextRenderer(g))
             {
                 Rectangle textLocation = new Rectangle(TEXT_OFFSET + TRACK_SIZE_WIDTH, 0, Width - (TEXT_OFFSET + TRACK_SIZE_WIDTH), Height);
@@ -229,92 +323,51 @@
             }
         }
 
-        private Bitmap DrawCheckMarkBitmap()
+        private void SetupEventHandlers()
         {
-            var checkMark = new Bitmap(THUMB_SIZE, THUMB_SIZE);
-            var g = Graphics.FromImage(checkMark);
-
-            // clear everything, transparent
-            g.Clear(Color.Transparent);
-
-            // draw the checkmark lines
-            using (var pen = new Pen(Parent.BackColor, 2))
+            GotFocus += (sender, args) =>
             {
-                g.DrawLines(pen, CheckmarkLine);
-            }
-
-            return checkMark;
-        }
-
-        public override bool AutoSize
-        {
-            get { return base.AutoSize; }
-            set
-            {
-                base.AutoSize = value;
-                if (value)
-                {
-                    Size = new Size(10, 10);
-                }
-            }
-        }
-
-        private bool IsMouseInCheckArea()
-        {
-            return ClientRectangle.Contains(MouseLocation);
-        }
-
-        private bool hovered = false;
-
-        protected override void OnCreateControl()
-        {
-            base.OnCreateControl();
-
-            if (DesignMode) return;
-
-            MouseState = MouseState.OUT;
-
-            GotFocus += (sender, AddingNewEventArgs) =>
-            {
-                if (Ripple && !hovered)
+                if (Ripple && !_hovered)
                 {
                     _hoverAM.StartNewAnimation(AnimationDirection.In, new object[] { Checked });
-                    hovered = true;
+                    _hovered = true;
                 }
             };
 
             LostFocus += (sender, args) =>
             {
-                if (Ripple && hovered)
+                if (Ripple && _hovered)
                 {
                     _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
-                    hovered = false;
+                    _hovered = false;
                 }
             };
 
             MouseEnter += (sender, args) =>
             {
                 MouseState = MouseState.HOVER;
-                //if (Ripple && !hovered)
-                //{
-                //    _hoverAM.StartNewAnimation(AnimationDirection.In, new object[] { Checked });
-                //    hovered = true;
-                //}
+                if (Ripple && !_hovered)
+                {
+                    _hoverAM.StartNewAnimation(AnimationDirection.In, new object[] { Checked });
+                    _hovered = true;
+                }
             };
 
             MouseLeave += (sender, args) =>
             {
                 MouseLocation = new Point(-1, -1);
                 MouseState = MouseState.OUT;
-                //if (Ripple && hovered)
-                //{
-                //    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
-                //    hovered = false;
-                //}
+                if (Ripple && _hovered)
+                {
+                    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
+                    _hovered = false;
+                }
             };
 
             MouseDown += (sender, args) =>
             {
+                if (ReadOnly) return;
+                
                 MouseState = MouseState.DOWN;
                 if (Ripple)
                 {
@@ -323,32 +376,16 @@
                 }
             };
 
-            KeyDown += (sender, args) =>
-            {
-                if (Ripple && (args.KeyCode == Keys.Space) && _rippleAM.GetAnimationCount() == 0)
-                {
-                    _rippleAM.SecondaryIncrement = 0;
-                    _rippleAM.StartNewAnimation(AnimationDirection.InOutIn, new object[] { Checked });
-                }
-            };
-
             MouseUp += (sender, args) =>
             {
+                if (ReadOnly) return;
+                
                 if (Ripple)
                 {
                     MouseState = MouseState.HOVER;
                     _rippleAM.SecondaryIncrement = 0.08;
                     _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
-                    hovered = false;
-                }
-            };
-
-            KeyUp += (sender, args) =>
-            {
-                if (Ripple && (args.KeyCode == Keys.Space))
-                {
-                    MouseState = MouseState.HOVER;
-                    _rippleAM.SecondaryIncrement = 0.08;
+                    _hovered = false;
                 }
             };
 
@@ -358,5 +395,12 @@
                 Cursor = IsMouseInCheckArea() ? Cursors.Hand : Cursors.Default;
             };
         }
+
+        private bool IsMouseInCheckArea()
+        {
+            return ClientRectangle.Contains(MouseLocation);
+        }
+
+        #endregion
     }
 }

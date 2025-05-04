@@ -197,7 +197,7 @@ namespace MaterialSkinExample
 
         private void materialButton6_Click(object sender, EventArgs e)
         {
-            MaterialSnackBar SnackBarMessage = new MaterialSnackBar("SnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfullySnackBar started succesfully", "OK", true);
+            MaterialSnackBar SnackBarMessage = new MaterialSnackBar("00000000010000000002000000000300000000040000000005000000000600000000070000000008000000000900000000010", "OK", true);
             SnackBarMessage.Show(this);
         }
 

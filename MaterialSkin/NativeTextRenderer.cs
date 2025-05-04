@@ -174,7 +174,8 @@ public sealed class NativeTextRenderer : IDisposable
                 if (flags.HasFlag(TextAlignFlags.Bottom))
                     pos.Y = size.Height - strRect.Height;
 
-                // Draw Text for multiline format
+                //
+                // for multiline format
                 Rect region = new Rect(new Rectangle(pos, size));
                 DrawText(memoryHdc, str, -1, ref region, (uint)fmtFlags);
             }
