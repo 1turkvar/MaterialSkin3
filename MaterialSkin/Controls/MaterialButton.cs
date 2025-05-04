@@ -139,8 +139,8 @@
         protected override void OnParentChanged(EventArgs e)
         {
             base.OnParentChanged(e);
-            if (drawShadows && Parent != null) AddShadowPaintEvent(Parent, drawShadowOnParent);
-            if (_oldParent != null) RemoveShadowPaintEvent(_oldParent, drawShadowOnParent);
+            if (drawShadows && Parent != null) AddShadowPaintEvent(Parent, DrawShadowOnParent);
+            if (_oldParent != null) RemoveShadowPaintEvent(_oldParent, DrawShadowOnParent);
             _oldParent = Parent;
         }
 
@@ -151,9 +151,9 @@
             base.OnVisibleChanged(e);
             if (Parent == null) return;
             if (Visible)
-                AddShadowPaintEvent(Parent, drawShadowOnParent);
+                AddShadowPaintEvent(Parent, DrawShadowOnParent);
             else
-                RemoveShadowPaintEvent(Parent, drawShadowOnParent);
+                RemoveShadowPaintEvent(Parent, DrawShadowOnParent);
         }
 
         protected override void OnEnabledChanged(EventArgs e)
@@ -303,11 +303,11 @@
             }
         }
 
-        private void drawShadowOnParent(object sender, PaintEventArgs e)
+        private void DrawShadowOnParent(object sender, PaintEventArgs e)
         {
             if (Parent == null)
             {
-                RemoveShadowPaintEvent((Control)sender, drawShadowOnParent);
+                RemoveShadowPaintEvent((Control)sender, DrawShadowOnParent);
                 return;
             }
 

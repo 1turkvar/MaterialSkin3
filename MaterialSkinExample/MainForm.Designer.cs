@@ -2404,7 +2404,7 @@ namespace MaterialSkinExample
             this.materialFlatButton2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
             this.materialFlatButton2.UseAccentColor = false;
             this.materialFlatButton2.UseVisualStyleBackColor = true;
-            this.materialFlatButton2.Click += new System.EventHandler(this.materialFlatButton4_Click);
+            this.materialFlatButton2.Click += new System.EventHandler(this.MaterialFlatButton4_Click);
             // 
             // materialLabel50
             // 

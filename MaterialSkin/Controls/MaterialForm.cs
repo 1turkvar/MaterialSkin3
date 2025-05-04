@@ -784,7 +784,30 @@ namespace MaterialSkin.Controls
         }
         #endregion
 
+
+
         #region WinForms Methods
+
+        private void ApplyRoundedCorners()
+        {
+            int radius = 20;
+            var path = new System.Drawing.Drawing2D.GraphicsPath();
+            path.AddArc(0, 0, radius, radius, 180, 90);
+            path.AddArc(this.Width - radius, 0, radius, radius, 270, 90);
+            path.AddArc(this.Width - radius, this.Height - radius, radius, radius, 0, 90);
+            path.AddArc(0, this.Height - radius, radius, radius, 90, 90);
+            path.CloseFigure();
+            this.Region = new Region(path);
+        }
+
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+
+            ApplyRoundedCorners();
+        }
+
         protected override CreateParams CreateParams
         {
             get

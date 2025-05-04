@@ -44,18 +44,15 @@
 
         // animation managers
         private readonly AnimationManager _checkAM;
-
         private readonly AnimationManager _rippleAM;
         private readonly AnimationManager _hoverAM;
 
         // size related variables which should be recalculated onsizechanged
         private Rectangle _radioButtonBounds;
-
         private int _boxOffset;
 
         // size constants
         private const int HEIGHT_RIPPLE = 37;
-
         private const int HEIGHT_NO_RIPPLE = 20;
         private const int RADIOBUTTON_SIZE = 18;
         private const int RADIOBUTTON_SIZE_HALF = RADIOBUTTON_SIZE / 2;
@@ -207,7 +204,8 @@
 
         private bool IsMouseInCheckArea()
         {
-            return ClientRectangle.Contains(MouseLocation);
+            // Sadece radyo düğmesi alanını kontrol et, tüm kontrolü değil
+            return _radioButtonBounds.Contains(MouseLocation);
         }
 
         private bool hovered = false;
@@ -241,22 +239,22 @@
             MouseEnter += (sender, args) =>
             {
                 MouseState = MouseState.HOVER;
-                //if (Ripple && !hovered)
-                //{
-                //    _hoverAM.StartNewAnimation(AnimationDirection.In, new object[] { Checked });
-                //    hovered = true;
-                //}
+                if (Ripple && !hovered)
+                {
+                    _hoverAM.StartNewAnimation(AnimationDirection.In, new object[] { Checked });
+                    hovered = true;
+                }
             };
 
             MouseLeave += (sender, args) =>
             {
                 MouseLocation = new Point(-1, -1);
                 MouseState = MouseState.OUT;
-                //if (Ripple && hovered)
-                //{
-                //    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
-                //    hovered = false;
-                //}
+                if (Ripple && hovered)
+                {
+                    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
+                    hovered = false;
+                }
             };
 
             MouseDown += (sender, args) =>
@@ -284,8 +282,14 @@
                 {
                     MouseState = MouseState.HOVER;
                     _rippleAM.SecondaryIncrement = 0.08;
-                    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
-                    hovered = false;
+
+                    // MouseUp sonrası hover durumunu koruyalım (zaten hala üzerinde olabilir)
+                    // Sadece hover durumunu değiştirmek yerine doğru durumu belirleme
+                    if (!ClientRectangle.Contains(args.Location))
+                    {
+                        _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
+                        hovered = false;
+                    }
                 }
             };
 

@@ -79,9 +79,9 @@
                         base.SelectedIndex = value;
                     }
                 }
-                catch
+                catch (Exception)
                 {
-                    // Hata yakalandı ama işleme gerek yok
+                    // Error caught but no action needed
                 }
                 Invalidate();
             }
@@ -187,11 +187,9 @@
                 ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, LINE_Y);
 
             //Set color and brush
-            Color selectedColor;
-            if (UseAccent)
-                selectedColor = SkinManager.ColorScheme.AccentColor;
-            else
-                selectedColor = SkinManager.ColorScheme.PrimaryColor;
+            Color selectedColor = UseAccent ?
+                SkinManager.ColorScheme.AccentColor :
+                SkinManager.ColorScheme.PrimaryColor;
 
             using (SolidBrush selectedBrush = new SolidBrush(selectedColor))
             {
@@ -209,10 +207,7 @@
                     Brush arrowBrush;
                     if (Enabled)
                     {
-                        if (DroppedDown || Focused)
-                            arrowBrush = selectedBrush;
-                        else
-                            arrowBrush = SkinManager.TextHighEmphasisBrush;
+                        arrowBrush = DroppedDown || Focused ? selectedBrush : SkinManager.TextHighEmphasisBrush;
                     }
                     else
                     {
@@ -308,10 +303,7 @@
                         Color hintColor;
                         if (Enabled)
                         {
-                            if (DroppedDown || Focused)
-                                hintColor = selectedColor;
-                            else
-                                hintColor = SkinManager.TextMediumEmphasisColor;
+                            hintColor = DroppedDown || Focused ? selectedColor : SkinManager.TextMediumEmphasisColor;
                         }
                         else
                         {
@@ -350,39 +342,7 @@
                 g.FillRectangle(SkinManager.BackgroundHoverBrush, e.Bounds);
             }
 
-            string text = "";
-            if (!string.IsNullOrWhiteSpace(DisplayMember))
-            {
-                try
-                {
-                    if (!(Items[e.Index] is DataRowView))
-                    {
-                        var prop = Items[e.Index].GetType().GetProperty(DisplayMember);
-                        if (prop != null)
-                        {
-                            var item = prop.GetValue(Items[e.Index]);
-                            text = item != null ? item.ToString() : string.Empty;
-                        }
-                    }
-                    else
-                    {
-                        var rowView = Items[e.Index] as DataRowView;
-                        if (rowView != null && rowView.Row.Table.Columns.Contains(DisplayMember))
-                        {
-                            text = rowView.Row[DisplayMember].ToString();
-                        }
-                    }
-                }
-                catch
-                {
-                    // Hata durumunda varsayılan Item.ToString() kullanılacak
-                    text = Items[e.Index].ToString();
-                }
-            }
-            else
-            {
-                text = Items[e.Index].ToString();
-            }
+            string text = GetItemText(e.Index);
 
             using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
             {
@@ -394,6 +354,43 @@
                     new Size(e.Bounds.Size.Width - SkinManager.FORM_PADDING * 2, e.Bounds.Size.Height),
                     NativeTextRenderer.TextAlignFlags.Left | NativeTextRenderer.TextAlignFlags.Middle);
             }
+        }
+
+        private string GetItemText(int index)
+        {
+            if (index < 0 || index >= Items.Count)
+                return string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(DisplayMember))
+            {
+                try
+                {
+                    object item = Items[index];
+
+                    if (item is DataRowView rowView)
+                    {
+                        if (rowView.Row.Table.Columns.Contains(DisplayMember))
+                        {
+                            return rowView.Row[DisplayMember]?.ToString() ?? string.Empty;
+                        }
+                    }
+                    else
+                    {
+                        var prop = item.GetType().GetProperty(DisplayMember);
+                        if (prop != null)
+                        {
+                            var propValue = prop.GetValue(item);
+                            return propValue?.ToString() ?? string.Empty;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Fall back to default ToString() in case of any error
+                }
+            }
+
+            return Items[index]?.ToString() ?? string.Empty;
         }
 
         protected override void OnCreateControl()
@@ -426,7 +423,7 @@
 
         public void RecalculateAutoSize()
         {
-            if (!AutoResize) return;
+            if (!AutoResize || Items.Count == 0) return;
 
             int w = DropDownWidth;
             int padding = SkinManager.FORM_PADDING * 3;
@@ -434,11 +431,17 @@
 
             using (Graphics g = CreateGraphics())
             {
+                if (g == null) return;
+
                 using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
                 {
                     foreach (object item in Items)
                     {
-                        string itemText = item.ToString();
+                        if (item == null) continue;
+
+                        string itemText = GetItemText(Items.IndexOf(item));
+                        if (string.IsNullOrEmpty(itemText)) continue;
+
                         int newWidth = nativeText.MeasureLogString(itemText, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width + vertScrollBarWidth + padding;
                         if (w < newWidth) w = newWidth;
                     }
@@ -454,8 +457,6 @@
 
         protected override void Dispose(bool disposing)
         {
-            // AnimationManager'in kendi Dispose mekanizması var,
-            // base.Dispose yeterli olacaktır
             base.Dispose(disposing);
         }
     }

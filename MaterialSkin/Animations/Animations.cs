@@ -1,6 +1,7 @@
 ﻿namespace MaterialSkin.Animations
 {
     using System;
+
     /// <summary>
     /// Defines the AnimationType
     /// </summary>
@@ -23,6 +24,7 @@
         /// </summary>
         CustomQuadratic
     }
+
     /// <summary>
     /// Defines the <see cref="AnimationLinear" />
     /// </summary>

@@ -79,7 +79,7 @@ namespace MaterialSkinExample
         private void materialButton1_Click(object sender, EventArgs e)
         {
             materialSkinManager.Theme = materialSkinManager.Theme == MaterialSkinManager.Themes.DARK ? MaterialSkinManager.Themes.LIGHT : MaterialSkinManager.Themes.DARK;
-            updateColor();
+            UpdateColor();
         }
 
         private int colorSchemeIndex;
@@ -89,10 +89,10 @@ namespace MaterialSkinExample
             colorSchemeIndex++;
             if (colorSchemeIndex > 2)
                 colorSchemeIndex = 0;
-            updateColor();
+            UpdateColor();
         }
 
-        private void updateColor()
+        private void UpdateColor()
         {
             //These are just example color schemes
             switch (colorSchemeIndex)
@@ -132,7 +132,7 @@ namespace MaterialSkinExample
             materialProgressBar1.Value = Math.Min(materialProgressBar1.Value + 10, 100);
         }
 
-        private void materialFlatButton4_Click(object sender, EventArgs e)
+        private void MaterialFlatButton4_Click(object sender, EventArgs e)
         {
             materialProgressBar1.Value = Math.Max(materialProgressBar1.Value - 10, 0);
         }
