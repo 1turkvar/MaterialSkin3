@@ -164,6 +164,15 @@
             _actionButton.Visible = _showActionButton;
             _actionButton.Text = _actionButtonText;
             _actionButton.Click += ActionButton_Click;
+
+            _actionButton.TabStop = true;
+            _actionButton.AccessibleName = _actionButtonText;
+            _actionButton.AccessibleDescription = "SnackBar action button";
+            _actionButton.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Space)
+                    ActionButton_Click(s, EventArgs.Empty);
+            };
         }
 
         private void ActionButton_Click(object sender, EventArgs e)
