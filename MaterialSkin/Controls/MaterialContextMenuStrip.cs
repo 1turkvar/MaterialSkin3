@@ -38,10 +38,20 @@
                 Increment = 0.07,
                 AnimationType = AnimationType.Linear
             };
-            AnimationManager.OnAnimationProgress += sender => Invalidate();
-            AnimationManager.OnAnimationFinished += sender => OnItemClicked(_delayedArgs);
+            AnimationManager.OnAnimationProgress += AnimationManager_OnAnimationProgress;
+            AnimationManager.OnAnimationFinished += AnimationManager_OnAnimationFinished;
 
             BackColor = SkinManager.BackdropColor;
+        }
+
+        private void AnimationManager_OnAnimationProgress(object sender)
+        {
+            Invalidate();
+        }
+
+        private void AnimationManager_OnAnimationFinished(object sender)
+        {
+            OnItemClicked(_delayedArgs);
         }
 
         protected override void OnMouseUp(MouseEventArgs mea)
@@ -80,10 +90,14 @@
         {
             if (disposing)
             {
-                // AnimationManager'ı temizle (eğer IDisposable ise)
-                if (AnimationManager is IDisposable disposable)
+                // AnimationManager olaylarını kaldır
+                if (AnimationManager != null)
                 {
-                    disposable.Dispose();
+                    AnimationManager.OnAnimationProgress -= AnimationManager_OnAnimationProgress;
+                    AnimationManager.OnAnimationFinished -= AnimationManager_OnAnimationFinished;
+
+                    // AnimationManager'ı temizle
+                    AnimationManager = null;
                 }
             }
             base.Dispose(disposing);
@@ -123,6 +137,10 @@
 
         public MouseState MouseState { get; set; }
 
+        public MaterialToolStripRender() : base(new MaterialColorTable())
+        {
+        }
+
         protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
         {
             var g = e.Graphics;
@@ -155,7 +173,7 @@
             {
                 var animationManager = toolStrip.AnimationManager;
                 var animationSource = toolStrip.AnimationSource;
-                if (animationManager.IsAnimating() && e.Item.Bounds.Contains(animationSource))
+                if (animationManager != null && animationManager.IsAnimating() && e.Item.Bounds.Contains(animationSource))
                 {
                     for (int i = 0; i < animationManager.GetAnimationCount(); i++)
                     {
@@ -192,6 +210,13 @@
         protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
         {
             e.ToolStrip.BackColor = SkinManager.BackgroundColor;
+
+            // Menü border'ını çiz
+            using (var borderPen = new Pen(SkinManager.DividersColor))
+            {
+                var rect = new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+                e.Graphics.DrawRectangle(borderPen, rect);
+            }
         }
 
         protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
@@ -217,5 +242,21 @@
         {
             return new Rectangle(0, item.ContentRectangle.Y, item.ContentRectangle.Width, item.ContentRectangle.Height);
         }
+    }
+
+    // MaterialColorTable ekledim - profesyonel renderer için gerekli
+    internal class MaterialColorTable : ProfessionalColorTable
+    {
+        public override Color MenuBorder => MaterialSkinManager.Instance.DividersColor;
+        public override Color MenuItemBorder => Color.Transparent;
+        public override Color MenuItemSelected => MaterialSkinManager.Instance.BackgroundFocusColor;
+        public override Color MenuItemSelectedGradientBegin => MaterialSkinManager.Instance.BackgroundFocusColor;
+        public override Color MenuItemSelectedGradientEnd => MaterialSkinManager.Instance.BackgroundFocusColor;
+        public override Color MenuStripGradientBegin => MaterialSkinManager.Instance.BackgroundColor;
+        public override Color MenuStripGradientEnd => MaterialSkinManager.Instance.BackgroundColor;
+        public override Color ToolStripDropDownBackground => MaterialSkinManager.Instance.BackgroundColor;
+        public override Color ImageMarginGradientBegin => MaterialSkinManager.Instance.BackgroundColor;
+        public override Color ImageMarginGradientMiddle => MaterialSkinManager.Instance.BackgroundColor;
+        public override Color ImageMarginGradientEnd => MaterialSkinManager.Instance.BackgroundColor;
     }
 }

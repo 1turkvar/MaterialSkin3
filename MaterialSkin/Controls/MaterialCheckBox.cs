@@ -32,7 +32,7 @@
             set
             {
                 _ripple = value;
-                AutoSize = AutoSize; // AutoSize özelliğini yeniden ayarlayarak sınırları güncelliyor
+                AutoSize = AutoSize; // Updates the bounds by resetting the AutoSize property
 
                 if (value)
                 {
@@ -62,6 +62,8 @@
         private static readonly Point[] CheckmarkLine = { new Point(3, 8), new Point(7, 12), new Point(14, 5) };
         private bool _hovered = false;
         private CheckState _oldCheckState;
+        // Store the checkmark bitmap to avoid recreating it every paint cycle
+        private Bitmap _checkMarkBitmap;
         #endregion
 
         #region Constructor
@@ -86,6 +88,13 @@
 
             CheckedChanged += (sender, args) =>
             {
+                if (ReadOnly)
+                {
+                    // Prevent state change if ReadOnly is true
+                    CheckState = _oldCheckState;
+                    return;
+                }
+
                 if (Ripple)
                     _checkAM.StartNewAnimation(Checked ? AnimationDirection.In : AnimationDirection.Out);
             };
@@ -126,7 +135,7 @@
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
-            // Kontrolü temizle
+            // Clear control
             g.Clear(Parent.BackColor);
 
             int checkboxCenter = _boxOffset + CHECKBOX_SIZE_HALF - 1;
@@ -140,7 +149,7 @@
             using (SolidBrush brush = new SolidBrush(Color.FromArgb(colorAlpha, Enabled ? SkinManager.ColorScheme.AccentColor : SkinManager.CheckBoxOffDisabledColor)))
             using (Pen pen = new Pen(brush.Color, 2))
             {
-                // Hover animasyonunu çiz
+                // Draw hover animation
                 if (Ripple)
                 {
                     double animationValue = _hoverAM.IsAnimating() ? _hoverAM.GetProgress() : _hovered ? 1 : 0;
@@ -153,7 +162,7 @@
                     }
                 }
 
-                // Ripple animasyonunu çiz
+                // Draw ripple animation
                 if (Ripple && _rippleAM.IsAnimating())
                 {
                     for (int i = 0; i < _rippleAM.GetAnimationCount(); i++)
@@ -202,10 +211,21 @@
                             g.DrawPath(pen, checkmarkPath);
                     }
 
-                    g.DrawImageUnscaledAndClipped(DrawCheckMarkBitmap(), checkMarkLineFill);
+                    // Create checkmark bitmap if not already created
+                    if (_checkMarkBitmap == null || _checkMarkBitmap.Width != CHECKBOX_SIZE || _checkMarkBitmap.Height != CHECKBOX_SIZE)
+                    {
+                        // Dispose previous bitmap if exists
+                        if (_checkMarkBitmap != null)
+                        {
+                            _checkMarkBitmap.Dispose();
+                        }
+                        _checkMarkBitmap = CreateCheckMarkBitmap();
+                    }
+
+                    g.DrawImageUnscaledAndClipped(_checkMarkBitmap, checkMarkLineFill);
                 }
 
-                // Checkbox metnini çiz
+                // Draw checkbox text
                 using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
                 {
                     Rectangle textLocation = new Rectangle(_boxOffset + TEXT_OFFSET, 0, Width - (_boxOffset + TEXT_OFFSET), HEIGHT_RIPPLE);
@@ -263,12 +283,24 @@
             {
                 MouseState = MouseState.HOVER;
                 _oldCheckState = CheckState;
+
+                if (Ripple && !_hovered)
+                {
+                    _hoverAM.StartNewAnimation(AnimationDirection.In, new object[] { Checked });
+                    _hovered = true;
+                }
             };
 
             MouseLeave += (sender, args) =>
             {
                 MouseLocation = new Point(-1, -1);
                 MouseState = MouseState.OUT;
+
+                if (Ripple && _hovered)
+                {
+                    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
+                    _hovered = false;
+                }
             };
 
             MouseDown += (sender, args) =>
@@ -279,7 +311,7 @@
                     _rippleAM.SecondaryIncrement = 0;
                     _rippleAM.StartNewAnimation(AnimationDirection.InOutIn, new object[] { Checked });
                 }
-                if (ReadOnly) CheckState = _oldCheckState;
+                _oldCheckState = CheckState;
             };
 
             KeyDown += (sender, args) =>
@@ -289,7 +321,7 @@
                     _rippleAM.SecondaryIncrement = 0;
                     _rippleAM.StartNewAnimation(AnimationDirection.InOutIn, new object[] { Checked });
                 }
-                if (ReadOnly) CheckState = _oldCheckState;
+                _oldCheckState = CheckState;
             };
 
             MouseUp += (sender, args) =>
@@ -298,9 +330,15 @@
                 {
                     MouseState = MouseState.HOVER;
                     _rippleAM.SecondaryIncrement = 0.08;
-                    _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
-                    _hovered = false;
+
+                    // Don't start a new animation if we're already hovering
+                    if (_hovered)
+                    {
+                        _hoverAM.StartNewAnimation(AnimationDirection.Out, new object[] { Checked });
+                        _hovered = false;
+                    }
                 }
+
                 if (ReadOnly) CheckState = _oldCheckState;
             };
 
@@ -311,6 +349,7 @@
                     MouseState = MouseState.HOVER;
                     _rippleAM.SecondaryIncrement = 0.08;
                 }
+
                 if (ReadOnly) CheckState = _oldCheckState;
             };
 
@@ -323,15 +362,15 @@
         #endregion
 
         #region Private events and methods
-        private Bitmap DrawCheckMarkBitmap()
+        private Bitmap CreateCheckMarkBitmap()
         {
             Bitmap checkMark = new Bitmap(CHECKBOX_SIZE, CHECKBOX_SIZE);
             using (Graphics g = Graphics.FromImage(checkMark))
             {
-                // Arka planı transparan olarak temizle
+                // Clear background to transparent
                 g.Clear(Color.Transparent);
 
-                // Onay işareti çizgilerini çiz
+                // Draw checkmark lines
                 using (Pen pen = new Pen(Parent.BackColor, 2))
                 {
                     g.DrawLines(pen, CheckmarkLine);
@@ -344,6 +383,21 @@
         private bool IsMouseInCheckArea()
         {
             return ClientRectangle.Contains(MouseLocation);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources
+                if (_checkMarkBitmap != null)
+                {
+                    _checkMarkBitmap.Dispose();
+                    _checkMarkBitmap = null;
+                }
+            }
+
+            base.Dispose(disposing);
         }
         #endregion
     }
