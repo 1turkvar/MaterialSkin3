@@ -24,12 +24,29 @@
         private const int FAB_MINI_ICON_MARGIN = 8;
         private const int FAB_ICON_SIZE = 24;
 
-        private Boolean _mouseHover = false;
+        private bool _mouseHover = false;
 
         [DefaultValue(true)]
         [Category("Material Skin"), DisplayName("Draw Shadows")]
         [Description("Draw Shadows around control")]
-        public bool DrawShadows { get; set; }
+        public bool DrawShadows
+        {
+            get { return _drawShadows; }
+            set
+            {
+                _drawShadows = value;
+                if (Parent != null)
+                {
+                    if (value)
+                        AddShadowPaintEvent(Parent, drawShadowOnParent);
+                    else
+                        RemoveShadowPaintEvent(Parent, drawShadowOnParent);
+
+                    Parent.Invalidate();
+                }
+            }
+        }
+        private bool _drawShadows = true;
 
         [DefaultValue(false)]
         [Category("Material Skin"), DisplayName("Size Mini")]
@@ -39,9 +56,12 @@
             get { return _mini; }
             set
             {
-                if (Parent != null)
-                    Parent.Invalidate();
-                setSize(value);
+                if (value != _mini)
+                {
+                    if (Parent != null)
+                        Parent.Invalidate();
+                    setSize(value);
+                }
             }
         }
 
@@ -57,7 +77,7 @@
 
         private bool _animateShowButton;
 
-        [DefaultValue(false)]
+        [DefaultValue(null)]
         [Category("Material Skin")]
         [Description("Define icon to display")]
         public Image Icon
@@ -69,9 +89,9 @@
         private Image _icon;
 
         private bool _isHiding = false;
+        private bool _isShowing = false;
 
         private readonly AnimationManager _animationManager;
-
         private readonly AnimationManager _showAnimationManager;
 
         public MaterialFloatingActionButton()
@@ -96,10 +116,21 @@
             };
             _showAnimationManager.OnAnimationProgress += sender => Invalidate();
             _showAnimationManager.OnAnimationFinished += _showAnimationManager_OnAnimationFinished;
+
+            // Initialize bounds
+            UpdateFabBounds();
+        }
+
+        private void UpdateFabBounds()
+        {
+            fabBounds = _mini ? new Rectangle(0, 0, FAB_MINI_SIZE, FAB_MINI_SIZE) : new Rectangle(0, 0, FAB_SIZE, FAB_SIZE);
+            fabBounds.Width -= 1;
+            fabBounds.Height -= 1;
         }
 
         protected override void InitLayout()
         {
+            base.InitLayout();
             LocationChanged += (sender, e) => { if (DrawShadows) Parent?.Invalidate(); };
         }
 
@@ -127,7 +158,7 @@
 
         private void AddShadowPaintEvent(Control control, PaintEventHandler shadowPaintEvent)
         {
-            if (_shadowDrawEventSubscribed) return;
+            if (_shadowDrawEventSubscribed || control == null) return;
             control.Paint += shadowPaintEvent;
             control.Invalidate();
             _shadowDrawEventSubscribed = true;
@@ -135,7 +166,7 @@
 
         private void RemoveShadowPaintEvent(Control control, PaintEventHandler shadowPaintEvent)
         {
-            if (!_shadowDrawEventSubscribed) return;
+            if (!_shadowDrawEventSubscribed || control == null) return;
             control.Paint -= shadowPaintEvent;
             control.Invalidate();
             _shadowDrawEventSubscribed = false;
@@ -145,9 +176,7 @@
         {
             _mini = mini;
             Size = _mini ? new Size(FAB_MINI_SIZE, FAB_MINI_SIZE) : new Size(FAB_SIZE, FAB_SIZE);
-            fabBounds = _mini ? new Rectangle(0, 0, FAB_MINI_SIZE, FAB_MINI_SIZE) : new Rectangle(0, 0, FAB_SIZE, FAB_SIZE);
-            fabBounds.Width -= 1;
-            fabBounds.Height -= 1;
+            UpdateFabBounds();
         }
 
         private void _showAnimationManager_OnAnimationFinished(object sender)
@@ -157,11 +186,15 @@
                 Visible = false;
                 _isHiding = false;
             }
+            else if (_isShowing)
+            {
+                _isShowing = false;
+            }
         }
 
         private void drawShadowOnParent(object sender, PaintEventArgs e)
         {
-            if (Parent == null)
+            if (Parent == null || !DrawShadows)
             {
                 RemoveShadowPaintEvent((Control)sender, drawShadowOnParent);
                 return;
@@ -184,7 +217,10 @@
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Paint shadow on element to blend with the parent shadow
-            DrawHelper.DrawRoundShadow(g, fabBounds);
+            if (DrawShadows)
+            {
+                DrawHelper.DrawRoundShadow(g, fabBounds);
+            }
 
             // draw fab
             g.FillEllipse(Enabled ? _mouseHover ?
@@ -216,16 +252,22 @@
 
             if (Icon != null)
             {
-                g.DrawImage(Icon, new Rectangle(fabBounds.Width / 2 - 11, fabBounds.Height / 2 - 11, 24, 24));
+                // Simgeyi ortalayarak çiz
+                int iconSize = FAB_ICON_SIZE;
+                int iconMargin = _mini ? FAB_MINI_ICON_MARGIN : FAB_ICON_MARGIN;
+                int x = (fabBounds.Width - iconSize) / 2;
+                int y = (fabBounds.Height - iconSize) / 2;
+                g.DrawImage(Icon, new Rectangle(x, y, iconSize, iconSize));
             }
 
             if (_showAnimationManager.IsAnimating())
             {
-                int target = Convert.ToInt32((_mini ? FAB_MINI_SIZE : FAB_SIZE) * _showAnimationManager.GetProgress());
+                int buttonSize = _mini ? FAB_MINI_SIZE : FAB_SIZE;
+                int target = Convert.ToInt32(buttonSize * _showAnimationManager.GetProgress());
                 fabBounds.Width = target == 0 ? 1 : target;
                 fabBounds.Height = target == 0 ? 1 : target;
-                fabBounds.X = Convert.ToInt32(((_mini ? FAB_MINI_SIZE : FAB_SIZE) / 2) - (((_mini ? FAB_MINI_SIZE : FAB_SIZE) / 2) * _showAnimationManager.GetProgress()));
-                fabBounds.Y = Convert.ToInt32(((_mini ? FAB_MINI_SIZE : FAB_SIZE) / 2) - (((_mini ? FAB_MINI_SIZE : FAB_SIZE) / 2) * _showAnimationManager.GetProgress()));
+                fabBounds.X = Convert.ToInt32((buttonSize / 2) - ((buttonSize / 2) * _showAnimationManager.GetProgress()));
+                fabBounds.Y = Convert.ToInt32((buttonSize / 2) - ((buttonSize / 2) * _showAnimationManager.GetProgress()));
             }
 
             // Clip to a round shape with a 1px padding
@@ -272,15 +314,16 @@
             }
         }
 
-
-        private Point origin;
-
         public new void Hide()
         {
-            if (Visible)
+            if (Visible && AnimateShowHideButton)
             {
                 _isHiding = true;
                 _showAnimationManager.StartNewAnimation(AnimationDirection.Out);
+            }
+            else
+            {
+                Visible = false;
             }
         }
 
@@ -288,8 +331,12 @@
         {
             if (!Visible)
             {
-                origin = Location;
-                _showAnimationManager.StartNewAnimation(AnimationDirection.In);
+                if (AnimateShowHideButton)
+                {
+                    _isShowing = true;
+                    _showAnimationManager.StartNewAnimation(AnimationDirection.In);
+                }
+
                 Visible = true;
             }
         }

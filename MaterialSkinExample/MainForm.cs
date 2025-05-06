@@ -289,5 +289,10 @@ namespace MaterialSkinExample
             materialTextBox21.ShowAssistiveText = materialSwitch16.Checked;
         }
 
+        private void materialFloatingActionButton1_Click(object sender, EventArgs e)
+        {
+            MaterialSnackBar SnackBarMessage = new MaterialSnackBar("Bastýn!", 750);
+            SnackBarMessage.Show(this);
+        }
     }
 }
