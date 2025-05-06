@@ -130,11 +130,21 @@ namespace MaterialSkinExample
         private void MaterialButton2_Click(object sender, EventArgs e)
         {
             materialProgressBar1.Value = Math.Min(materialProgressBar1.Value + 10, 100);
+            materialProgressBar2.Value = Math.Min(materialProgressBar2.Value + 10, 100);
+            materialProgressBar3.Value = Math.Min(materialProgressBar3.Value + 10, 100);
+            materialProgressBar4.Value = Math.Min(materialProgressBar4.Value + 10, 100);
+            materialProgressBar5.Value = Math.Min(materialProgressBar5.Value + 10, 100);
+            materialProgressBar6.Value = Math.Min(materialProgressBar6.Value + 10, 100);
         }
 
         private void MaterialFlatButton4_Click(object sender, EventArgs e)
         {
             materialProgressBar1.Value = Math.Max(materialProgressBar1.Value - 10, 0);
+            materialProgressBar2.Value = Math.Max(materialProgressBar2.Value - 10, 0);
+            materialProgressBar3.Value = Math.Max(materialProgressBar3.Value - 10, 0);
+            materialProgressBar4.Value = Math.Max(materialProgressBar4.Value - 10, 0);
+            materialProgressBar5.Value = Math.Max(materialProgressBar5.Value - 10, 0);
+            materialProgressBar6.Value = Math.Max(materialProgressBar6.Value - 10, 0);
         }
 
         private void materialSwitch4_CheckedChanged(object sender, EventArgs e)
