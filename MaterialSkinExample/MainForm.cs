@@ -304,5 +304,11 @@ namespace MaterialSkinExample
             MaterialSnackBar SnackBarMessage = new MaterialSnackBar("Bastýn!", 750);
             SnackBarMessage.Show(this);
         }
+
+        private void bootstrapMaterialButton1_Click(object sender, EventArgs e)
+        {
+            MaterialSnackBar SnackBarMessage = new MaterialSnackBar("Bastýn!", 750);
+            SnackBarMessage.Show(this);
+        }
     }
 }

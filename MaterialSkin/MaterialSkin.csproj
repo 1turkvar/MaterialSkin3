@@ -47,6 +47,9 @@
     <Compile Include="Controls\BaseTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Controls\MaterialButton2.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\FlexibleMaterialDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,6 +57,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\MaterialListBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\MaterialListView2.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\MaterialScrollBar.cs">
@@ -72,6 +78,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Controls\MaterialMaskedTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\MaterialSpinner.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\MaterialSwitch.cs">
