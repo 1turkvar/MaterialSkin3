@@ -310,5 +310,16 @@ namespace MaterialSkinExample
             MaterialSnackBar SnackBarMessage = new MaterialSnackBar("Bastýn!", 750);
             SnackBarMessage.Show(this);
         }
+
+        private void materialComboBox8_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            materialComboBox8.AllowCustomText = true;
+            materialComboBox8.SetCustomText("Bu Test");
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+  
+        }
     }
 }

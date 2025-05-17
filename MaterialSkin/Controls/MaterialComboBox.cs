@@ -3,9 +3,11 @@
     using MaterialSkin.Animations;
     using System;
     using System.ComponentModel;
-    using System.Data;
     using System.Drawing;
+    using System.Linq;
+    using System.Data;
     using System.Windows.Forms;
+    using System.Drawing.Drawing2D;
 
     public class MaterialComboBox : ComboBox, IMaterialControl
     {
@@ -48,7 +50,7 @@
         }
 
         [Category("Material Skin"), DefaultValue(true)]
-        public bool UseAccent { get; set; }
+        public bool UseAccent { get; set; } = true;
 
         private string _hint = string.Empty;
 
@@ -59,7 +61,7 @@
             set
             {
                 _hint = value;
-                hasHint = !string.IsNullOrEmpty(Hint);
+                hasHint = !String.IsNullOrEmpty(Hint);
                 Invalidate();
             }
         }
@@ -74,14 +76,14 @@
                 _startIndex = value;
                 try
                 {
-                    if (base.Items.Count > 0)
+                    if (value >= 0 && value < Items.Count)
                     {
-                        base.SelectedIndex = value;
+                        SelectedIndex = value;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Error caught but no action needed
+                    throw new Exception("Error setting StartIndex", ex);
                 }
                 Invalidate();
             }
@@ -94,18 +96,22 @@
         private int LINE_Y;
 
         private bool hasHint;
+        private string _displayedText = string.Empty;
+        private bool _useCustomText = false;
+        private bool _allowCustomText = false; // Yeni property için backing field
 
         private readonly AnimationManager _animationManager;
 
         public MaterialComboBox()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-
             // Material Properties
             Hint = "";
-            UseAccent = true;
             UseTallSize = true;
             MaxDropDownItems = 4;
+            _UseTallSize = true; // Initialize backing field
+                                 // Default değerler
+            _allowCustomText = false; // Default olarak kapalı
 
             Font = SkinManager.getFontByType(MaterialSkinManager.fontType.Subtitle2);
             BackColor = SkinManager.BackgroundColor;
@@ -123,6 +129,11 @@
             _animationManager.OnAnimationProgress += sender => Invalidate();
             _animationManager.OnAnimationFinished += sender => _animationManager.SetProgress(0);
 
+            SetupEventHandlers();
+        }
+
+        private void SetupEventHandlers()
+        {
             DropDownClosed += (sender, args) =>
             {
                 MouseState = MouseState.OUT;
@@ -160,6 +171,8 @@
 
             SelectedIndexChanged += (sender, args) =>
             {
+                // Update displayed text when selection changes
+                UpdateDisplayedText();
                 Invalidate();
             };
 
@@ -168,158 +181,360 @@
                 if (Enabled && DropDownStyle == ComboBoxStyle.DropDownList && (args.KeyCode == Keys.Delete || args.KeyCode == Keys.Back))
                 {
                     SelectedIndex = -1;
+                    UpdateDisplayedText();
                     Invalidate();
                 }
             };
         }
 
-        protected override void OnPaint(PaintEventArgs pevent)
+        private void UpdateDisplayedText()
         {
-            Graphics g = pevent.Graphics;
-
-            g.Clear(Parent.BackColor);
-            g.FillRectangle(Enabled ? Focused ?
-                SkinManager.BackgroundFocusBrush : // Focused
-                MouseState == MouseState.HOVER ?
-                SkinManager.BackgroundHoverBrush : // Hover
-                SkinManager.BackgroundAlternativeBrush : // normal
-                SkinManager.BackgroundDisabledBrush, // Disabled
-                ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, LINE_Y);
-
-            //Set color and brush
-            Color selectedColor = UseAccent ?
-                SkinManager.ColorScheme.AccentColor :
-                SkinManager.ColorScheme.PrimaryColor;
-
-            using (SolidBrush selectedBrush = new SolidBrush(selectedColor))
+            if (!_allowCustomText || !_useCustomText)
             {
-                // Create and Draw the arrow
-                using (System.Drawing.Drawing2D.GraphicsPath path = new System.Drawing.Drawing2D.GraphicsPath())
+                if (SelectedIndex >= 0)
                 {
-                    PointF topRight = new PointF(Width - 0.5f - SkinManager.FORM_PADDING, (Height >> 1) - 2.5f);
-                    PointF midBottom = new PointF(Width - 4.5f - SkinManager.FORM_PADDING, (Height >> 1) + 2.5f);
-                    PointF topLeft = new PointF(Width - 8.5f - SkinManager.FORM_PADDING, (Height >> 1) - 2.5f);
-                    path.AddLine(topLeft, topRight);
-                    path.AddLine(topRight, midBottom);
-
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-                    Brush arrowBrush;
-                    if (Enabled)
-                    {
-                        arrowBrush = DroppedDown || Focused ? selectedBrush : SkinManager.TextHighEmphasisBrush;
-                    }
-                    else
-                    {
-                        using (SolidBrush disabledBrush = new SolidBrush(DrawHelper.BlendColor(SkinManager.TextHighEmphasisColor, SkinManager.SwitchOffDisabledThumbColor, 197)))
-                        {
-                            arrowBrush = disabledBrush;
-                            g.FillPath(arrowBrush, path);
-                        }
-                        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-                        goto SkipArrowFill; // Avoid duplicate arrow fill
-                    }
-
-                    g.FillPath(arrowBrush, path);
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-                }
-
-            SkipArrowFill:
-
-                // HintText
-                bool userTextPresent = SelectedIndex >= 0;
-                Rectangle hintRect = new Rectangle(SkinManager.FORM_PADDING, ClientRectangle.Y, Width, LINE_Y);
-                int hintTextSize = 16;
-
-                // bottom line base
-                g.FillRectangle(SkinManager.DividersAlternativeBrush, 0, LINE_Y, Width, 1);
-
-                if (!_animationManager.IsAnimating())
-                {
-                    // No animation
-                    if (hasHint && UseTallSize && (DroppedDown || Focused || SelectedIndex >= 0))
-                    {
-                        // hint text
-                        hintRect = new Rectangle(SkinManager.FORM_PADDING, TEXT_SMALL_Y, Width, TEXT_SMALL_SIZE);
-                        hintTextSize = 12;
-                    }
-
-                    // bottom line
-                    if (DroppedDown || Focused)
-                    {
-                        g.FillRectangle(selectedBrush, 0, LINE_Y, Width, 2);
-                    }
+                    _displayedText = GetItemText(SelectedIndex);
                 }
                 else
                 {
-                    // Animate - Focus got/lost
-                    double animationProgress = _animationManager.GetProgress();
-
-                    // hint Animation
-                    if (hasHint && UseTallSize)
-                    {
-                        hintRect = new Rectangle(
-                            SkinManager.FORM_PADDING,
-                            userTextPresent && !_animationManager.IsAnimating() ? (TEXT_SMALL_Y) : ClientRectangle.Y + (int)((TEXT_SMALL_Y - ClientRectangle.Y) * animationProgress),
-                            Width,
-                            userTextPresent && !_animationManager.IsAnimating() ? (TEXT_SMALL_SIZE) : (int)(LINE_Y + (TEXT_SMALL_SIZE - LINE_Y) * animationProgress));
-                        hintTextSize = userTextPresent && !_animationManager.IsAnimating() ? 12 : (int)(16 + (12 - 16) * animationProgress);
-                    }
-
-                    // Line Animation
-                    int lineAnimationWidth = (int)(Width * animationProgress);
-                    int lineAnimationX = (Width / 2) - (lineAnimationWidth / 2);
-                    g.FillRectangle(selectedBrush, lineAnimationX, LINE_Y, lineAnimationWidth, 2);
+                    _displayedText = string.Empty;
                 }
+                _useCustomText = false;
+            }
+            // _allowCustomText true ve _useCustomText true ise _displayedText'i değiştirme
+        }
 
-                // Calc text Rect
-                Rectangle textRect = new Rectangle(
-                    SkinManager.FORM_PADDING,
-                    hasHint && UseTallSize ? (hintRect.Y + hintRect.Height) - 2 : ClientRectangle.Y,
-                    ClientRectangle.Width - SkinManager.FORM_PADDING * 3 - 8,
-                    hasHint && UseTallSize ? LINE_Y - (hintRect.Y + hintRect.Height) : LINE_Y);
+        [Category("Misc"), DefaultValue(false)]
+        [Description("Items listesinde olmayan değerleri Text property'sine yazabilmeyi sağlar")]
+        public bool AllowCustomText
+        {
+            get { return _allowCustomText; }
+            set
+            {
+                _allowCustomText = value;
 
-                g.Clip = new Region(textRect);
-
-                using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
+                // Eğer özellik devre dışı bırakılıyorsa custom text'i temizle
+                if (!value && _useCustomText)
                 {
-                    // Draw user text
-                    nativeText.DrawTransparentText(
-                        Text,
-                        SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1),
-                        Enabled ? SkinManager.TextHighEmphasisColor : SkinManager.TextDisabledOrHintColor,
-                        textRect.Location,
-                        textRect.Size,
-                        NativeTextRenderer.TextAlignFlags.Left | NativeTextRenderer.TextAlignFlags.Middle);
-                }
-
-                g.ResetClip();
-
-                // Draw hint text
-                if (hasHint && (UseTallSize || string.IsNullOrEmpty(Text)))
-                {
-                    using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
+                    _useCustomText = false;
+                    // Mevcut SelectedIndex'e göre güncelle
+                    if (SelectedIndex >= 0)
                     {
-                        Color hintColor;
-                        if (Enabled)
-                        {
-                            hintColor = DroppedDown || Focused ? selectedColor : SkinManager.TextMediumEmphasisColor;
-                        }
-                        else
-                        {
-                            hintColor = SkinManager.TextDisabledOrHintColor;
-                        }
-
-                        nativeText.DrawTransparentText(
-                            Hint,
-                            SkinManager.getTextBoxFontBySize(hintTextSize),
-                            hintColor,
-                            hintRect.Location,
-                            hintRect.Size,
-                            NativeTextRenderer.TextAlignFlags.Left | NativeTextRenderer.TextAlignFlags.Middle);
+                        _displayedText = GetItemText(SelectedIndex);
                     }
+                    else
+                    {
+                        _displayedText = string.Empty;
+                    }
+                    Invalidate();
                 }
             }
+        }
+
+        // Text property - AllowCustomText'e göre davranır
+        [Browsable(false)]
+        public override string Text
+        {
+            get
+            {
+                // Eğer custom text izinli ve aktifse onu döndür
+                if (_allowCustomText && _useCustomText)
+                {
+                    return _displayedText;
+                }
+
+                // Aksi halde normal davranışı sürdür
+                if (SelectedIndex >= 0)
+                {
+                    return GetItemText(SelectedIndex);
+                }
+                return _displayedText;
+            }
+            set
+            {
+                // AllowCustomText false ise sadece Items içinde arama yap
+                if (!_allowCustomText)
+                {
+                    // Items içinde arama yap
+                    if (!string.IsNullOrEmpty(value) && Items.Count > 0)
+                    {
+                        for (int i = 0; i < Items.Count; i++)
+                        {
+                            if (string.Equals(GetItemText(i), value, StringComparison.OrdinalIgnoreCase))
+                            {
+                                SelectedIndex = i;
+                                return;
+                            }
+                        }
+                    }
+
+                    // Eşleşme bulunamadıysa veya value boşsa SelectedIndex temizle
+                    SelectedIndex = -1;
+                    _displayedText = string.Empty;
+                    _useCustomText = false;
+                    Invalidate();
+                    return;
+                }
+
+                // AllowCustomText true ise önceki davranışı sürdür
+                _displayedText = value ?? string.Empty;
+                _useCustomText = true;
+
+                // Items içinde arama yap (opsiyonel)
+                if (!string.IsNullOrEmpty(value) && Items.Count > 0)
+                {
+                    for (int i = 0; i < Items.Count; i++)
+                    {
+                        if (string.Equals(GetItemText(i), value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            SelectedIndex = i;
+                            _useCustomText = false;
+                            return;
+                        }
+                    }
+                }
+
+                // Eşleşme bulunamadı, SelectedIndex'i temizle
+                SelectedIndex = -1;
+                Invalidate();
+            }
+        }
+
+
+        protected override void OnSelectedIndexChanged(EventArgs e)
+        {
+            if (SelectedIndex >= 0)
+            {
+                _useCustomText = false; // Programatik seçim yapıldı, custom text modunu devre dışı bırak
+                _displayedText = GetItemText(SelectedIndex);
+            }
+            base.OnSelectedIndexChanged(e);
+            Invalidate();
+        }
+
+        // Override Items collection to force update when items are added
+        protected override void RefreshItems()
+        {
+            base.RefreshItems();
+            // StartIndex'i uygula
+            if (_startIndex >= 0 && _startIndex < Items.Count && SelectedIndex < 0)
+            {
+                SelectedIndex = _startIndex;
+            }
+            UpdateDisplayedText();
+            Invalidate();
+        }
+
+        protected override void OnDataSourceChanged(EventArgs e)
+        {
+            base.OnDataSourceChanged(e);
+            // StartIndex'i uygula
+            if (_startIndex >= 0 && _startIndex < Items.Count && SelectedIndex < 0)
+            {
+                SelectedIndex = _startIndex;
+            }
+            UpdateDisplayedText();
+            Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs pevent)
+        {
+            Graphics g = pevent.Graphics;
+            g.Clear(Parent.BackColor);
+
+            // Create rounded rectangle for the background
+            using (GraphicsPath roundedRectPath = DrawHelper.CreateRoundRect(
+                ClientRectangle.X,
+                ClientRectangle.Y,
+                ClientRectangle.Width,
+                LINE_Y,
+                4))
+            {
+                // Determine background color based on state
+                using (SolidBrush fillBrush = GetBackgroundBrush())
+                {
+                    g.FillPath(fillBrush, roundedRectPath);
+                }
+            }
+
+            //Set color and brush
+            Color selectedColor = UseAccent ? SkinManager.ColorScheme.AccentColor : SkinManager.ColorScheme.PrimaryColor;
+            using (SolidBrush selectedBrush = new SolidBrush(selectedColor))
+            {
+                DrawArrow(g, selectedBrush);
+                DrawHintAndText(g, selectedColor, selectedBrush);
+            }
+        }
+
+        private SolidBrush GetBackgroundBrush()
+        {
+            if (!Enabled)
+                return new SolidBrush(SkinManager.BackgroundDisabledColor);
+
+            if (Focused)
+                return new SolidBrush(SkinManager.BackgroundFocusColor);
+
+            if (MouseState == MouseState.HOVER)
+                return new SolidBrush(SkinManager.BackgroundHoverColor);
+
+            return new SolidBrush(SkinManager.BackgroundAlternativeColor);
+        }
+
+        private void DrawArrow(Graphics g, SolidBrush selectedBrush)
+        {
+            // Create and Draw the arrow
+            using (GraphicsPath pth = new GraphicsPath())
+            {
+                float centerY = Height * 0.5f;
+                PointF topRight = new PointF(Width - 0.5f - SkinManager.FORM_PADDING, centerY - 2.5f);
+                PointF midBottom = new PointF(Width - 4.5f - SkinManager.FORM_PADDING, centerY + 2.5f);
+                PointF topLeft = new PointF(Width - 8.5f - SkinManager.FORM_PADDING, centerY - 2.5f);
+
+                pth.AddLine(topLeft, topRight);
+                pth.AddLine(topRight, midBottom);
+
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                if (Enabled)
+                {
+                    g.FillPath(DroppedDown || Focused ? selectedBrush : SkinManager.TextHighEmphasisBrush, pth);
+                }
+                else
+                {
+                    using (SolidBrush disabledBrush = new SolidBrush(DrawHelper.BlendColor(SkinManager.TextHighEmphasisColor, SkinManager.SwitchOffDisabledThumbColor, 197)))
+                    {
+                        g.FillPath(disabledBrush, pth);
+                    }
+                }
+
+                g.SmoothingMode = SmoothingMode.None;
+            }
+        }
+
+        // DrawHintAndText method'unu güncelle
+        private void DrawHintAndText(Graphics g, Color selectedColor, SolidBrush selectedBrush)
+        {
+            bool userTextPresent = (_allowCustomText && _useCustomText) || SelectedIndex >= 0 || !string.IsNullOrEmpty(_displayedText);
+
+            // ... mevcut hint ve line drawing kodu ...
+            Rectangle hintRect = new Rectangle(SkinManager.FORM_PADDING, ClientRectangle.Y, Width, LINE_Y);
+            int hintTextSize = 16;
+
+            // bottom line base
+            g.FillRectangle(SkinManager.DividersAlternativeBrush, 0, LINE_Y, Width, 1);
+
+            if (!_animationManager.IsAnimating())
+            {
+                // No animation
+                if (hasHint && UseTallSize && (DroppedDown || Focused || userTextPresent))
+                {
+                    // hint text
+                    hintRect = new Rectangle(SkinManager.FORM_PADDING, TEXT_SMALL_Y, Width, TEXT_SMALL_SIZE);
+                    hintTextSize = 12;
+                }
+
+                // bottom line
+                if (DroppedDown || Focused)
+                {
+                    g.FillRectangle(selectedBrush, 0, LINE_Y, Width, 2);
+                }
+            }
+            else
+            {
+                // Animation logic...
+                double animationProgress = _animationManager.GetProgress();
+
+                // hint Animation
+                if (hasHint && UseTallSize)
+                {
+                    int hintY = userTextPresent && !_animationManager.IsAnimating() ?
+                        TEXT_SMALL_Y :
+                        ClientRectangle.Y + (int)((TEXT_SMALL_Y - ClientRectangle.Y) * animationProgress);
+
+                    int hintHeight = userTextPresent && !_animationManager.IsAnimating() ?
+                        TEXT_SMALL_SIZE :
+                        (int)(LINE_Y + (TEXT_SMALL_SIZE - LINE_Y) * animationProgress);
+
+                    hintRect = new Rectangle(SkinManager.FORM_PADDING, hintY, Width, hintHeight);
+                    hintTextSize = userTextPresent && !_animationManager.IsAnimating() ? 12 : (int)(16 + (12 - 16) * animationProgress);
+                }
+
+                // Line Animation
+                int lineAnimationWidth = (int)(Width * animationProgress);
+                int lineAnimationX = (Width / 2) - (lineAnimationWidth / 2);
+                g.FillRectangle(selectedBrush, lineAnimationX, LINE_Y, lineAnimationWidth, 2);
+            }
+
+            // Calc text Rect
+            Rectangle textRect = new Rectangle(
+                SkinManager.FORM_PADDING,
+                hasHint && UseTallSize ? (hintRect.Y + hintRect.Height) - 2 : ClientRectangle.Y,
+                ClientRectangle.Width - SkinManager.FORM_PADDING * 3 - 8,
+                hasHint && UseTallSize ? LINE_Y - (hintRect.Y + hintRect.Height) : LINE_Y);
+
+            // Draw user text
+            if (userTextPresent)
+            {
+                using (Region clipRegion = new Region(textRect))
+                {
+                    g.Clip = clipRegion;
+
+                    using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
+                    {
+                        // Text property'sini kullan
+                        string displayText = this.Text;
+
+                        nativeText.DrawTransparentText(
+                            displayText,
+                            SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1),
+                            Enabled ? SkinManager.TextHighEmphasisColor : SkinManager.TextDisabledOrHintColor,
+                            textRect.Location,
+                            textRect.Size,
+                            NativeTextRenderer.TextAlignFlags.Left | NativeTextRenderer.TextAlignFlags.Middle);
+                    }
+
+                    g.ResetClip();
+                }
+            }
+
+            // Draw hint text
+            if (hasHint && (UseTallSize || !userTextPresent))
+            {
+                using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
+                {
+                    Color hintColor = !Enabled ? SkinManager.TextDisabledOrHintColor :
+                        (DroppedDown || Focused) ? selectedColor : SkinManager.TextMediumEmphasisColor;
+
+                    nativeText.DrawTransparentText(
+                        Hint,
+                        SkinManager.getTextBoxFontBySize(hintTextSize),
+                        hintColor,
+                        hintRect.Location,
+                        hintRect.Size,
+                        NativeTextRenderer.TextAlignFlags.Left | NativeTextRenderer.TextAlignFlags.Middle);
+                }
+            }
+        }
+        // Helper methods (opsiyonel)
+        public void SetCustomText(string text)
+        {
+            if (!_allowCustomText)
+            {
+                throw new InvalidOperationException("AllowCustomText property must be true to use SetCustomText method.");
+            }
+
+            _displayedText = text ?? string.Empty;
+            _useCustomText = true;
+            SelectedIndex = -1;
+            Invalidate();
+        }
+
+        public void ClearCustomText()
+        {
+            _useCustomText = false;
+            _displayedText = string.Empty;
+            SelectedIndex = -1;
+            Invalidate();
         }
 
         private void CustomMeasureItem(object sender, MeasureItemEventArgs e)
@@ -342,12 +557,12 @@
                 g.FillRectangle(SkinManager.BackgroundHoverBrush, e.Bounds);
             }
 
-            string text = GetItemText(e.Index);
+            string itemText = GetItemText(e.Index);
 
             using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
             {
                 nativeText.DrawTransparentText(
-                    text,
+                    itemText,
                     SkinManager.getFontByType(MaterialSkinManager.fontType.Subtitle1),
                     SkinManager.TextHighEmphasisNoAlphaColor,
                     new Point(e.Bounds.Location.X + SkinManager.FORM_PADDING, e.Bounds.Location.Y),
@@ -363,34 +578,21 @@
 
             if (!string.IsNullOrWhiteSpace(DisplayMember))
             {
-                try
+                var item = Items[index];
+                if (item is DataRowView dataRowView)
                 {
-                    object item = Items[index];
-
-                    if (item is DataRowView rowView)
-                    {
-                        if (rowView.Row.Table.Columns.Contains(DisplayMember))
-                        {
-                            return rowView.Row[DisplayMember]?.ToString() ?? string.Empty;
-                        }
-                    }
-                    else
-                    {
-                        var prop = item.GetType().GetProperty(DisplayMember);
-                        if (prop != null)
-                        {
-                            var propValue = prop.GetValue(item);
-                            return propValue?.ToString() ?? string.Empty;
-                        }
-                    }
+                    return dataRowView[DisplayMember]?.ToString() ?? string.Empty;
                 }
-                catch (Exception)
+                else
                 {
-                    // Fall back to default ToString() in case of any error
+                    var property = item.GetType().GetProperty(DisplayMember);
+                    return property?.GetValue(item)?.ToString() ?? string.Empty;
                 }
             }
-
-            return Items[index]?.ToString() ?? string.Empty;
+            else
+            {
+                return Items[index]?.ToString() ?? string.Empty;
+            }
         }
 
         protected override void OnCreateControl()
@@ -401,6 +603,14 @@
             DrawItem += CustomDrawItem;
             DropDownStyle = ComboBoxStyle.DropDownList;
             DrawMode = DrawMode.OwnerDrawVariable;
+
+            // StartIndex'i uygula
+            if (_startIndex >= 0 && _startIndex < Items.Count && SelectedIndex < 0)
+            {
+                SelectedIndex = _startIndex;
+            }
+
+            UpdateDisplayedText();
             RecalculateAutoSize();
             SetHeightVars();
         }
@@ -423,28 +633,20 @@
 
         public void RecalculateAutoSize()
         {
-            if (!AutoResize || Items.Count == 0) return;
+            if (!AutoResize) return;
 
             int w = DropDownWidth;
             int padding = SkinManager.FORM_PADDING * 3;
             int vertScrollBarWidth = (Items.Count > MaxDropDownItems) ? SystemInformation.VerticalScrollBarWidth : 0;
 
             using (Graphics g = CreateGraphics())
+            using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
             {
-                if (g == null) return;
-
-                using (NativeTextRenderer nativeText = new NativeTextRenderer(g))
+                var itemsList = Items.Cast<object>().Select(item => item?.ToString() ?? string.Empty);
+                foreach (string s in itemsList)
                 {
-                    foreach (object item in Items)
-                    {
-                        if (item == null) continue;
-
-                        string itemText = GetItemText(Items.IndexOf(item));
-                        if (string.IsNullOrEmpty(itemText)) continue;
-
-                        int newWidth = nativeText.MeasureLogString(itemText, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width + vertScrollBarWidth + padding;
-                        if (w < newWidth) w = newWidth;
-                    }
+                    int newWidth = nativeText.MeasureLogString(s, SkinManager.getLogFontByType(MaterialSkinManager.fontType.Subtitle1)).Width + vertScrollBarWidth + padding;
+                    if (w < newWidth) w = newWidth;
                 }
             }
 
@@ -457,6 +659,10 @@
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                //_animationManager?.Dispose();
+            }
             base.Dispose(disposing);
         }
     }
